@@ -1,6 +1,6 @@
-package nz.org.sesa.los.controllers
+package nz.org.sesa.los.server.controllers
 
-import nz.org.sesa.los.models.World
+import nz.org.sesa.los.server.models.World
 
 import play.api._
 import play.api.mvc._

@@ -1,12 +1,12 @@
-val me = Player.login("username")
+val me = los.login("username")
 
-def findInInventory(name: String) =
+def retrieve(name: String) =
     me.inventory.find (_.name == name).head
 
-val tiles = findInInventory("paper map").use().asInstanceOf[List[Tile]]
-val legend = findInInventory("map legend")
+val tiles = retrieve("paper map").use().asInstanceOf[List[los.Tile]]
+val legend = retrieve("map legend")
 
-def nearMe(range: Int)(tile: Tile) =
+def nearMe(range: Int)(tile: los.Tile) =
     tile.x >= me.x - range && tile.x <= me.x + range && tile.y >= me.y - range && tile.y <= me.y + range
 
 def showMap = {
@@ -27,7 +27,7 @@ def showMap = {
 
     print(tiles.filter(nearMe(25)).map(tile => {
         var s = (tile.x, tile.y) match {
-            case (x, y) if x == me.x && y == me.y => Markers.Me
+            case (x, y) if x == me.x && y == me.y => los.Markers.Me
             case _ => legend.use(tile.terrain)
         }
         if (tile.y != lastY) {

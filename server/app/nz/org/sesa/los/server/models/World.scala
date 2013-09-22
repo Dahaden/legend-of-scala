@@ -1,4 +1,4 @@
-package nz.org.sesa.los.models
+package nz.org.sesa.los.server.models
 
 import net.liftweb.json
 
