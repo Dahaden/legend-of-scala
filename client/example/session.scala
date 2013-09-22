@@ -133,7 +133,7 @@ beacon.examine
 beacon.use()
 
 // Let's try find another player.
-def players = beacon.use("players").asInstanceOf[List[los.Coordinate]]
+def players = beacon.use("players").asInstanceOf[Set[los.Coordinate]]
 showTile = (tile : los.Tile) => (tile.x, tile.y) match {
     case (x, y) if x == me.x && y == me.y => los.Markers.Me
     case (x, y) if players contains (x, y) => los.Markers.Player

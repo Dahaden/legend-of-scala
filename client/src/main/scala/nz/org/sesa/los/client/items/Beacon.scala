@@ -15,9 +15,9 @@ class Beacon(val id : Int) extends Item {
             println(s"""${Display.StartHilight}A voice mysteriously emanates from the beacon.${Display.Reset}
 Speak into the beacon your query -- whether "dungeons", "players" or "mines" -- and it shall be found.
 """)
-            List[Beacon.Coordinate]()
+            Set[Beacon.Coordinate]()
         } else {
-            List[Beacon.Coordinate]()
+            Set[Beacon.Coordinate]()
         }
     }
 }
