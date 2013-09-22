@@ -134,7 +134,7 @@ ${27.toChar}[38;5;238m
 
     val http = new Http()
     val req = :/(Player.ServerAddress) / "players" / name
-    Await.result(http(req), Duration.Inf).getResponseBody()
+    //Await.result(http(req), Duration.Inf).getResponseBody()
 
     greet()
 
