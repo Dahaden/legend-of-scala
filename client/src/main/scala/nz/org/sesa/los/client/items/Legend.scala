@@ -43,7 +43,7 @@ class Legend(val id: Int) extends Item {
             return null
         }
 
-        val s = args(0).asInstanceOf[String]
+        val s = args(0).asInstanceOf[Tile].terrain
         val c = Legend.Colors.getOrElse(s, 0)
 
         Display.fg(c) + Display.bg(c) + "  " + Display.Reset

@@ -8,4 +8,5 @@ package object los {
     val Markers = util.Markers
     val Features = util.Features
     type Tile = items.Tile
+    type Coordinate = (Int, Int)
 }

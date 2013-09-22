@@ -24,7 +24,7 @@ private object PaperMap {
 
 class PaperMap(val id : Int) extends Item {
     def name = "paper map"
-    def examine = "It's a map, but the legend is missing..."
+    def examine = "It's a map, but the legend is missing."
     def use(args: Any*) : Any = {
         if (args.length != 0) {
             this.rejectUse()
