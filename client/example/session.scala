@@ -6,13 +6,13 @@ def retrieve(name: String) =
 val tiles = retrieve("paper map").use().asInstanceOf[List[los.Tile]]
 val legend = retrieve("map legend")
 
-def nearMe(range: Int)(tile: los.Tile) =
+def aroundMe(range: Int)(tile: los.Tile) =
     tile.x >= me.x - range && tile.x <= me.x + range && tile.y >= me.y - range && tile.y <= me.y + range
 
 def showMap = {
     var lastY = 0
 
-    print(tiles.filter(nearMe(25)).map(tile => {
+    print(tiles.filter(aroundMe(25)).map(tile => {
         var s = legend.use(tile.terrain)
         if (tile.y != lastY) {
             s = "\n" + s
@@ -25,7 +25,7 @@ def showMap = {
 def showMap = {
     var lastY = 0
 
-    print(tiles.filter(nearMe(25)).map(tile => {
+    print(tiles.filter(aroundMe(25)).map(tile => {
         var s = (tile.x, tile.y) match {
             case (x, y) if x == me.x && y == me.y => los.Markers.Me
             case _ => legend.use(tile.terrain)
