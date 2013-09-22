@@ -1,34 +1,60 @@
 import dispatch._, Defaults._
 import net.liftweb.json
-import java.net.URLEncoder
+import net.liftweb.json.JsonDSL._
+
 import scala.concurrent._
 import scala.concurrent.duration._
+
+private object Display {
+    val Reset = 27.toChar + "[0m"
+    val Bold = 27.toChar + "[1m"
+    def fg(c: Int) = 27.toChar + s"[38;5;${c}m"
+    def bg(c: Int) = 27.toChar + s"[48;5;${c}m"
+
+    val StartHilight = s"${fg(255)}$Bold"
+    def show(x: String) = println(s"""${Display.StartHilight}$x${Display.Reset}
+""")
+}
 
 trait Item {
     val handle : String
 
+    def rejectUse() {
+        Display.show(s"You fumble with the $name but can't quite figure out how to use it.")
+    }
+
     def name : String
     def examine : String
-    def use(args: Object*) : Object
+    def use(args: Any*) : Any
 
-    override def toString = s"<Item: $name>"
+    override def toString = {
+        (this.name.charAt(0) match {
+            case 'a' | 'e' | 'i' | 'o' | 'u' => "an"
+            case _ => "a"
+        }) + " " + this.name
+    }
+}
+
+class Tile(val x : Int, val y : Int, val terrain : String, val features : List[String]) {
+    override def toString = s"$terrain tile at ($x,$y)"
 }
 
 private object PaperMap {
-    val Stride = 150
-
-    class Tile(terrain : String, features : List[String]) {
-
-    }
+    private val Stride = 150
 
     // cache tiles (we're never going to need to update this once we have them)
-    var tiles : List[Tile] = null
+    private var tiles : List[Tile] = null
 }
 
 private class PaperMap(val handle : String) extends Item {
     def name = "paper map"
     def examine = "It's a map, but the legend is missing..."
-    def use(args: Object*) = {
+    def use(args: Any*) : Any = {
+        if (args.length != 0) {
+            this.rejectUse()
+            return null
+        }
+
         if (PaperMap.tiles == null) {
             // load the map tiles on first use of the map
             val http = new Http();
@@ -37,17 +63,18 @@ private class PaperMap(val handle : String) extends Item {
 
             implicit val formats = json.DefaultFormats
 
-            PaperMap.tiles = for { tile <- js } yield tile.extract [PaperMap.Tile]
+            PaperMap.tiles = for { (tile, i) <- js.zipWithIndex } yield {
+                val x = i % PaperMap.Stride
+                val y = i / PaperMap.Stride
+
+                (tile ++ (("x" -> x) ~ ("y" -> y))).extract[Tile]
+            }
         }
         PaperMap.tiles
     }
 }
 
 private object Legend {
-    val _Reset = 27.toChar + "[0m"
-    val _Fg = 27.toChar + "[48;5;"
-    val _Bg = 27.toChar + "[38;5;"
-
     val Colors = Map(
         "ocean" -> 60,
         "coast" -> 238,
@@ -81,27 +108,21 @@ private object Legend {
 private class Legend(val handle: String) extends Item {
     def name = "map legend"
     def examine = "It's a torn off piece of paper, with some kind of map legend on it."
-    def use(args: Object*) = {
-        val s = args(0).asInstanceOf[String]
-        s match {
-            case "-right-edge" => "\n"
-
-            case _ => {
-                val c = Legend.Colors.getOrElse(s, 0)
-                Legend._Fg + c.toString + "m" +
-                Legend._Bg + c.toString + "m" + "  " +
-                Legend._Reset
-            }
+    def use(args: Any*) : Any = {
+        if (args.length != 1) {
+            this.rejectUse()
+            return null
         }
+
+        val s = args(0).asInstanceOf[String]
+        val c = Legend.Colors.getOrElse(s, 0)
+
+        Display.fg(c) + Display.bg(c) + "  " + Display.Reset
     }
 }
 
 object Markers {
-    private val _Reset = 27.toChar + "[0m"
-    private val _Fg = 27.toChar + "[48;5;"
-    private val _Bg = 27.toChar + "[38;5;"
-
-    val Me = _Fg + "226m" + 27.toChar + _Bg + "0m" + "u!" + _Reset
+    val Me = Display.Bold + Display.fg(0) + Display.bg(226) + "u!" + Display.Reset
 }
 
 object Features {
@@ -110,48 +131,79 @@ object Features {
 
 object Player {
     val ServerAddress = System.getenv("LOS_HOST")
-}
 
-class Player(name : String) {
-    private def greet() {
-        println(s"""${27.toChar}[1m${27.toChar}[38;5;255m
-Hello, Adventurer $name, and welcome to...
-${27.toChar}[38;5;238m
-:::::::::::::::::::::::::::::::::::::${27.toChar}[38;5;244m
- T  H  E    L  E  G  E  N  D    O  F ${27.toChar}[38;5;250m
-:::::::::::::::::::::::::::::::::::::${27.toChar}[38;5;196m
+    /**
+     * A vision, obtained when using me.look.
+     */
+    case class Vision(val synopsis : String) {
+        override def toString = s"""
+${Display.StartHilight}You can see:${Display.Reset}
+$synopsis
+
+${Display.StartHilight}Things of interest:${Display.Reset}
+Nothing here.
+"""
+    }
+
+    /**
+     * Reference to a remote object. The player should never be concerned with
+     * this.
+     */
+    private case class RemoteItemHandle(handle : String, kind : String)
+
+    private def greet(name : String) {
+        println(s"""
+${Display.StartHilight}Hello, Adventurer $name, and welcome to...${Display.Reset}
+${Display.fg(238)}
+:::::::::::::::::::::::::::::::::::::${Display.fg(244)}
+ T  H  E    L  E  G  E  N  D    O  F ${Display.fg(250)}
+:::::::::::::::::::::::::::::::::::::${Display.fg(196)}
 .oPYo. .oPYo.      .oo o          .oo
 8      8    8     .P 8 8         .P 8
 `Yooo. 8         .P  8 8        .P  8
     `8 8        oPooo8 8       oPooo8
      8 8    8  .P    8 8      .P    8
-`YooP' `YooP' .P     8 8oooo .P     8${27.toChar}[38;5;250m
-:.....::.....:..:::::..........:::::.${27.toChar}[38;5;244m
-:::::::::::::::::::::::::::::::::::::${27.toChar}[38;5;238m
-:::::::::::::::::::::::::::::::::::::${27.toChar}[0m
+`YooP' `YooP' .P     8 8oooo .P     8${Display.fg(250)}
+:.....::.....:..:::::..........:::::.${Display.fg(244)}
+:::::::::::::::::::::::::::::::::::::${Display.fg(238)}
+:::::::::::::::::::::::::::::::::::::${Display.Reset}
 """)
     }
 
-    val http = new Http()
-    val req = :/(Player.ServerAddress) / "players" / name
-    //Await.result(http(req), Duration.Inf).getResponseBody()
+    def login(name : String) = {
+        val http = new Http()
+        val req = :/(Player.ServerAddress) / "players" / name
 
-    greet()
+        implicit val formats = json.DefaultFormats
 
-    /**
-     * Reference to a remote object.
-     */
-    private case class RemoteItemHandle(handle : String, kind : String)
+        var js = json.parse(Await.result(http(req), Duration.Inf).getResponseBody())
+
+        // we need to rename x and y to x_ and y_ so we can construct the
+        // player case class
+        val x = js \ "x"
+        val y = js \ "y"
+
+        js = js ++ (("x_" -> x) ~ ("y_" -> y))
+
+        val player = js.extract[Player]
+        greet(player.name)
+        player
+    }
+}
+
+case class Player private(val name : String, private var x_ : Int, private var y_ : Int) {
+    def x : Int = x_
+    def y : Int = y_
+
+    var afterMove = () => {}
 
     def inventory = {
         val http = new Http()
         val req = :/(Player.ServerAddress) / "players" / name / "inventory"
-        val json.JArray(ris) = json.parse(Await.result(http(req), Duration.Inf).getResponseBody())
 
         implicit val formats = json.DefaultFormats
 
-        ris.map { ri =>
-            val h = ri.extract [RemoteItemHandle]
+        json.parse(Await.result(http(req), Duration.Inf).getResponseBody()).extract[List[Player.RemoteItemHandle]] map { h =>
             h.kind match {
                 case "paper-map" => new PaperMap(h.handle)
                 case "legend" => new Legend(h.handle)
@@ -163,10 +215,34 @@ ${27.toChar}[38;5;238m
     def look = {
         val http = new Http();
         val req = :/(Player.ServerAddress) / "players" / name / "look"
-        val js = json.parse(Await.result(http(req), Duration.Inf).getResponseBody())
+
+        implicit val formats = json.DefaultFormats
+
+        json.parse(Await.result(http(req), Duration.Inf).getResponseBody()).extract[Player.Vision]
     }
 
     def move(direction : String) = {
+        val http = new Http();
+        val req = :/(Player.ServerAddress) / "players" / name / "move" << json.pretty(json.render(
+            "direction" -> direction
+        ))
+
+        implicit val formats = json.DefaultFormats
+
+        val resp = Await.result(http(req), Duration.Inf)
+        val js = json.parse(resp.getResponseBody())
+
+        resp.getStatusCode() match {
+            case 400 => {
+                Display.show((js \ "why").extract[String])
+            }
+            case 200 => {
+                this.x_ = (js \ "x").extract[Int]
+                this.y_ = (js \ "y").extract[Int]
+                Display.show(s"You move ${direction}wards.")
+                this.afterMove()
+            }
+        }
     }
 
     override def toString = s"<Player: $name>"

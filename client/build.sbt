@@ -1,6 +1,9 @@
 scalaVersion := "2.10.2"
 
-scalacOptions += "-deprecation"
+scalacOptions ++= Seq(
+    "-deprecation",
+    "-feature"
+)
 
 resolvers ++= Seq(
   "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
