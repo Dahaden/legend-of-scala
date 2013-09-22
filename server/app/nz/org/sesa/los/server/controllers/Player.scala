@@ -104,7 +104,9 @@ object Player extends Controller {
                 val tile = World.world.tiles(i)
 
                 Ok(json.pretty(json.render(
-                    ("terrain" -> tile.terrain)
+                    ("terrain" -> tile.terrain) ~
+                    ("x" -> x) ~
+                    ("y" -> y)
                 ))).as("application/json")
             }
         }

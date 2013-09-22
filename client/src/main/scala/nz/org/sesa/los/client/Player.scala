@@ -73,9 +73,8 @@ object Player {
     /**
      * A vision, obtained when using me.look.
      */
-    case class Vision(val terrain : String) {
-        override def toString = s"""
-${Display.StartHilight}${FriendlyTerrainNane.get(terrain).head}${Display.Reset}
+    case class Vision(val x : Int, val y : Int, val terrain : String) {
+        override def toString = s"""${Display.StartHilight}${FriendlyTerrainNane.get(terrain).head} (${x},${y})${Display.Reset}
 ${FlavorText.get(terrain).head}
 
 ${Display.StartHilight}Things of interest${Display.Reset}
@@ -180,12 +179,14 @@ case class Player private(private val id : Int, val name : String, private var x
         resp.getStatusCode() match {
             case 400 => {
                 Display.show((js \ "why").extract[String])
+                false
             }
             case 200 => {
                 this.x_ = (js \ "x").extract[Int]
                 this.y_ = (js \ "y").extract[Int]
                 Display.show(s"You move ${direction.toLowerCase}wards.")
                 this.afterMove()
+                true
             }
         }
     }

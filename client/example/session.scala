@@ -19,7 +19,7 @@ def showMap = {
         }
         lastY = tile.y
         s
-    }).mkString)
+    }).mkString + "\n")
 }
 
 def showMap = {
@@ -35,7 +35,7 @@ def showMap = {
         }
         lastY = tile.y
         s
-    }).mkString)
+    }).mkString + "\n")
 }
 
 me.move("north")
@@ -51,3 +51,8 @@ def n = me.move("north")
 def s = me.move("south")
 def e = me.move("east")
 def w = me.move("west")
+
+def ni(i: Int) : Bool = i match { case 0 => true; case i => { if (n) ni(i - 1) else false } }
+def si(i: Int) : Bool = i match { case 0 => true; case i => { if (s) si(i - 1) else false } }
+def ei(i: Int) : Bool = i match { case 0 => true; case i => { if (e) ei(i - 1) else false } }
+def wi(i: Int) : Bool = i match { case 0 => true; case i => { if (w) wi(i - 1) else false } }
