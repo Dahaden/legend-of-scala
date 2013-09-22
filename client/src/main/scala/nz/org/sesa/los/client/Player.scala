@@ -11,15 +11,74 @@ import scala.concurrent._
 import scala.concurrent.duration._
 
 object Player {
+    private val FriendlyTerrainNane = Map(
+        "ocean" -> "Ocean",
+        "coast" -> "Coast",
+        "lakeshore" -> "Shore of Lake",
+        "lake" -> "Lake",
+        "river" -> "River",
+        "marsh" -> "Marsh",
+        "ice" -> "Ice",
+        "beach" -> "Beach",
+        "road1" -> "Road",
+        "road2" -> "Road",
+        "road3" -> "Road",
+        "bridge" -> "Bridge",
+        "lava" -> "Lava",
+        "snow" -> "Snow",
+        "tundra" -> "Tundra",
+        "bare" -> "Wasteland",
+        "scorched" -> "Scorched Land",
+        "taiga" -> "Taiga",
+        "shrubland" -> "Shrubland",
+        "temperate-desert" -> "Temperate Desert",
+        "temperate-rain-forest" -> "Temperate Rainforest",
+        "temperate-deciduous-forest" -> "Temperest Deciduous Forest",
+        "grassland" -> "Grassland",
+        "subtropical-desert" -> "Subtropical Desert",
+        "tropical-rain-forest" -> "Tropical Rainforest",
+        "tropical-seasonal-forest" -> "Tropical Seasonal Forest"
+    )
+
+    // TODO: write the flavor text
+    private val FlavorText = Map(
+        "ocean" -> "It's the ocean. I have no idea how you got here.",
+        "coast" -> "Coast.",
+        "lakeshore" -> "You're on the shore of a calm lake.",
+        "lake" -> "You're in a lake. You're probably drowning.",
+        "river" -> "You're in a river. How did you get here?",
+        "marsh" -> 240,
+        "ice" -> 123,
+        "beach" -> 138,
+        "road1" -> 235,
+        "road2" -> 237,
+        "road3" -> 239,
+        "bridge" -> 241,
+        "lava" -> 167,
+        "snow" -> 15,
+        "tundra" -> 249,
+        "bare" -> 102,
+        "scorched" -> 240,
+        "taiga" -> 108,
+        "shrubland" -> 102,
+        "temperate-desert" -> 186,
+        "temperate-rain-forest" -> 65,
+        "temperate-deciduous-forest" -> 65,
+        "grassland" -> "You're on a wide open plain of grass.",
+        "subtropical-desert" -> 180,
+        "tropical-rain-forest" -> 65,
+        "tropical-seasonal-forest" -> 65
+    )
+
     /**
      * A vision, obtained when using me.look.
      */
-    case class Vision(val synopsis : String) {
+    case class Vision(val terrain : String) {
         override def toString = s"""
-${Display.StartHilight}You can see:${Display.Reset}
-$synopsis
+${Display.StartHilight}${FriendlyTerrainNane.get(terrain).head}${Display.Reset}
+${FlavorText.get(terrain).head}
 
-${Display.StartHilight}Things of interest:${Display.Reset}
+${Display.StartHilight}Things of interest${Display.Reset}
 Nothing here.
 """
     }
@@ -50,12 +109,11 @@ ${Display.fg(238)}
     }
 
     def login(name : String) = {
-        val http = new Http()
         val req = :/(Global.ServerAddress) / "players" / name
 
         implicit val formats = json.DefaultFormats
 
-        val resp = Await.result(http(req), Duration.Inf)
+        val resp = Await.result(Global.http(req), Duration.Inf)
         var js = json.parse(resp.getResponseBody())
 
         resp.getStatusCode() match {
@@ -87,12 +145,11 @@ case class Player private(private val id : Int, val name : String, private var x
     var afterMove = () => {}
 
     def inventory = {
-        val http = new Http()
-        val req = :/(Global.ServerAddress) / "players" / id.toString / "inventory"
+        val req = :/(Global.ServerAddress) / "players" / name / "inventory"
 
         implicit val formats = json.DefaultFormats
 
-        json.parse(Await.result(http(req), Duration.Inf).getResponseBody()).extract[List[Player.RemoteItemHandle]] map { h =>
+        json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody()).extract[List[Player.RemoteItemHandle]] map { h =>
             h.kind match {
                 case "paper-map" => new PaperMap(h.id)
                 case "legend" => new Legend(h.id)
@@ -103,23 +160,21 @@ case class Player private(private val id : Int, val name : String, private var x
     }
 
     def look = {
-        val http = new Http();
-        val req = :/(Global.ServerAddress) / "players" / id.toString / "look"
+        val req = :/(Global.ServerAddress) / "players" / name / "look"
 
         implicit val formats = json.DefaultFormats
 
-        json.parse(Await.result(http(req), Duration.Inf).getResponseBody()).extract[Player.Vision]
+        json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody()).extract[Player.Vision]
     }
 
     def move(direction : String) = {
-        val http = new Http();
-        val req = :/(Global.ServerAddress) / "players" / id.toString / "move" << json.pretty(json.render(
-            "direction" -> direction
+        val req = :/(Global.ServerAddress) / "players" / name / "move" << json.pretty(json.render(
+            "direction" -> direction.toLowerCase
         ))
 
         implicit val formats = json.DefaultFormats
 
-        val resp = Await.result(http(req), Duration.Inf)
+        val resp = Await.result(Global.http(req), Duration.Inf)
         val js = json.parse(resp.getResponseBody())
 
         resp.getStatusCode() match {
@@ -129,7 +184,7 @@ case class Player private(private val id : Int, val name : String, private var x
             case 200 => {
                 this.x_ = (js \ "x").extract[Int]
                 this.y_ = (js \ "y").extract[Int]
-                Display.show(s"You move ${direction}wards.")
+                Display.show(s"You move ${direction.toLowerCase}wards.")
                 this.afterMove()
             }
         }

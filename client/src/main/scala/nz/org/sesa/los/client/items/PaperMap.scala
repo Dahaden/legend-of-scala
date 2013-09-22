@@ -33,9 +33,8 @@ class PaperMap(val id : Int) extends Item {
 
         if (PaperMap.tiles == null) {
             // load the map tiles on first use of the map
-            val http = new Http();
             val req = :/(Global.ServerAddress) / "map"
-            val json.JArray(js) = json.parse(Await.result(http(req), Duration.Inf).getResponseBody())
+            val json.JArray(js) = json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody())
 
             implicit val formats = json.DefaultFormats
 

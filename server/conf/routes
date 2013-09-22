@@ -1,5 +1,6 @@
 GET     /                                   nz.org.sesa.los.server.controllers.Application.index
 GET     /map                                nz.org.sesa.los.server.controllers.Application.map
+POST    /players                            nz.org.sesa.los.server.controllers.Player.create
 GET     /players/:playerName                nz.org.sesa.los.server.controllers.Player.view(playerName: String)
 GET     /players/:playerName/inventory      nz.org.sesa.los.server.controllers.Player.inventory(playerName: String)
 GET     /players/:playerName/look           nz.org.sesa.los.server.controllers.Player.look(playerName: String)
