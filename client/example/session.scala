@@ -34,9 +34,10 @@ map.use()
 
 // Hmm...
 map.use[List[Tile]]()
+map.use[List[Tile]]().head
 
 // Whoa, there's just a list of tiles. Let's store this somewhere.
-val tiles = map.use[List[Tile]]()
+val tiles = map.use[List[Tile]]().head
 
 // Let's get one tile from it.
 tiles(0)
@@ -47,7 +48,7 @@ val legend = retrieve("map legend")
 // Let's try using this legend.
 legend.use()
 legend.use[String]()
-legend.use[String](tiles(0))
+legend.use[String](tiles(0)).head
 
 // Hey, we get a colored tile! We can just go through all the tiles and apply
 // the legend to them, right?
@@ -65,7 +66,7 @@ tiles.filter(aroundMe(5))
 
 // Maybe 25 tiles.
 def showMap =
-    print(tiles.filter(aroundMe(25)).map(legend.use[String](_)).mkString)
+    print(tiles.filter(aroundMe(25)).map(legend.use[String](_).head).mkString)
 
 // ... not quite.
 def showMap = {
@@ -84,7 +85,7 @@ def showMap = {
 // What if we wanted to see ourselves on the map?
 def showTile(tile : Tile) = (tile.x, tile.y) match {
     case (x, y) if (x, y) == (me.x, me.y) => Markers.Me
-    case _ => legend.use[String](tile)
+    case _ => legend.use[String](tile).head
 }
 
 def showMap = {
@@ -138,7 +139,7 @@ beacon.use[List[Signal]]()
 
 // Let's try find another adventurer.
 def makeTarget(pred : Signal => Boolean) = () => {
-    beacon.use[List[Signal]]().find(pred).fold (-1, -1) { signal =>
+    beacon.use[List[Signal]]().head.find(pred).fold (-1, -1) { signal =>
         (signal.x, signal.y)
     }
 }
@@ -150,7 +151,7 @@ var target = makeTarget({ signal =>
 def showTile(tile : Tile, target : (Int, Int)) = (tile.x, tile.y) match {
     case (x, y) if (x, y) == target => Markers.Target
     case (x, y) if (x, y) == (me.x, me.y) => Markers.Me
-    case _ => legend.use[String](tile)
+    case _ => legend.use[String](tile).head
 }
 
 def showMap = {

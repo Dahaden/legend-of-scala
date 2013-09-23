@@ -33,16 +33,16 @@ class Beacon(val id : Int, val owner : String) extends Item {
             val json.JArray(js) = json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody())
             implicit val formats = json.DefaultFormats
 
-            for { adventurer <- js } yield {
+            Some((for { adventurer <- js } yield {
                 val x = (adventurer \ "x").extract[Int]
                 val y = (adventurer \ "y").extract[Int]
                 val name = (adventurer \ "name").extract[String]
 
                 new Beacon.Signal(x, y, name, Beacon.Signal.Adventurer)
-            }
+            }).asInstanceOf[T])
         } else {
             Display.show("It looks like you can use the beacon to find a List of Signals.")
-            throw new Item.OAK()
+            None
         }
-    }.asInstanceOf[T]
+    }
 }

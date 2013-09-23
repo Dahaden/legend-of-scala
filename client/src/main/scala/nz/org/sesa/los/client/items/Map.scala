@@ -48,19 +48,19 @@ class Map(val id : Int, val owner : String) extends Item {
 
         if (args.length != 0) {
             Display.show("That's ridiculous, you can't use a map like that.")
-            throw new Item.OAK()
+            None
         } else {
             if (m == manifest[List[Map.Tile]]) {
                 if (!Map.openedMap) {
                     Display.show("You open your map, and find that it has a bunch of colored squares. Maybe you can use them with your legend...?")
                     Map.openedMap = true;
                 }
-                Map.tiles
+                Some(Map.tiles.asInstanceOf[T])
             } else {
                 Display.show("It seems like this item needs to be used to find a List of Tiles.")
-                throw new Item.OAK()
+                None
             }
         }
-    }.asInstanceOf[T]
+    }
     def ensureRemoting = false
 }

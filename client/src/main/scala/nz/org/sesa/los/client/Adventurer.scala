@@ -82,8 +82,12 @@ ${Vision.FlavorText.get(terrain).head}
 ${Display.StartHilight}Features of Interest${Display.Reset}
 Nothing here.
 
+${Display.StartHilight}Monster${Display.Reset}
+No monsters.
+
 ${Display.StartHilight}Other Adventurers${Display.Reset}
 Nobody here.
+
 """
     }
 

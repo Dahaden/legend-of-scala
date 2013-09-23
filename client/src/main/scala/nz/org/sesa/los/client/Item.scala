@@ -8,10 +8,6 @@ import net.liftweb.json
 import scala.concurrent._
 import scala.concurrent.duration._
 
-object Item {
-    class OAK extends RuntimeException("There's a time and place for everything, but not now.")
-}
-
 trait Item {
     val id : Int
     val owner : String
@@ -21,7 +17,7 @@ trait Item {
 
     def remoting : Boolean = true
 
-    def use[T : Manifest](args: Any*) : T = {
+    def use[T : Manifest](args: Any*) : Option[T] = {
         if (!this.remoting) {
             return this.action(args: _*)
         }
@@ -41,12 +37,12 @@ trait Item {
 
             case 404 => {
                 Display.show((js \ "why").extract[String])
-                throw new Item.OAK()
+                None
             }
         }
     }
 
-    def action[T : Manifest](args: Any*) : T
+    def action[T : Manifest](args: Any*) : Option[T]
 
     override def toString = {
         (this.name.charAt(0) match {

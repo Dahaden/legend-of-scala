@@ -44,16 +44,16 @@ class MapLegend(val id: Int, val owner : String) extends Item {
         if (m == manifest[String]) {
             if (args.length != 1) {
                 Display.show("Hm, you need something to use this legend with... maybe a map tile?")
-                throw new Item.OAK()
+                None
+            } else {
+                val s = args(0).asInstanceOf[Map.Tile].terrain
+                val c = MapLegend.Colors.getOrElse(s, 0)
+
+                Some((Display.fg(c) + Display.bg(c) + "  " + Display.Reset).asInstanceOf[T])
             }
-
-            val s = args(0).asInstanceOf[Map.Tile].terrain
-            val c = MapLegend.Colors.getOrElse(s, 0)
-
-            Display.fg(c) + Display.bg(c) + "  " + Display.Reset
         } else {
             Display.show("It looks like you can use this legend to find Strings.")
-            throw new Item.OAK()
+            None
         }
-    }.asInstanceOf[T]
+    }
 }
