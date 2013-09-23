@@ -46,7 +46,10 @@ class PaperMap(val id : Int, val owner : String) extends Item {
                         val x = i % PaperMap.Stride
                         val y = i / PaperMap.Stride
 
-                        (tile ++ (("x" -> x) ~ ("y" -> y))).extract[PaperMap.Tile]
+                        (tile ++ (
+                            ("x" -> x) ~
+                            ("y" -> y))
+                        ).extract[PaperMap.Tile]
                     }
                 }
                 PaperMap.tiles
