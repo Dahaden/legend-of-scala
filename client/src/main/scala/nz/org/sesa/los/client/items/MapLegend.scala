@@ -38,22 +38,22 @@ class MapLegend(val id: Int, val owner : String) extends Item {
     def name = "map legend"
     def examine = "It's a torn off piece of paper, with some kind of map legend on it."
     override def remoting : Boolean = false
-    def action[T : Manifest](args: Any*) = {
-        val m = manifest[T]
-
-        if (m == manifest[String]) {
-            if (args.length != 1) {
-                Display.show("Hm, you need something to use this legend with... maybe a map tile?")
-                None
-            } else {
-                val s = args(0).asInstanceOf[Map.Tile].terrain
-                val c = MapLegend.Colors.getOrElse(s, 0)
-
-                Some((Display.fg(c) + Display.bg(c) + "  " + Display.Reset).asInstanceOf[T])
-            }
-        } else {
+    def action[T : Manifest](args: Any*) = () match {
+        case _ if manifest[T] != manifest[String] => {
             Display.show("It looks like you can use this legend to find Strings.")
             None
+        }
+
+        case _ if args.length != 1 => {
+            Display.show("Hm, you need something to use this legend with... maybe a map tile?")
+            None
+        }
+
+        case _ => {
+            val s = args(0).asInstanceOf[Map.Tile].terrain
+            val c = MapLegend.Colors.getOrElse(s, 0)
+
+            Some((Display.fg(c) + Display.bg(c) + "  " + Display.Reset).asInstanceOf[T])
         }
     }
 }

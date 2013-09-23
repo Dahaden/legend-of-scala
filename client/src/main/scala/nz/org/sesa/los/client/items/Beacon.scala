@@ -24,11 +24,13 @@ object Beacon {
 class Beacon(val id : Int, val owner : String) extends Item {
     def name = "beacon"
     def examine = "It's some kind of glowing gem with weird glyphs on it. You can use it to find things on the map."
-    def action[T : Manifest](args: Any*) = {
-        val m = manifest[T]
+    def action[T : Manifest](args: Any*) = () match {
+        case _ if manifest[T] != manifest[List[Beacon.Signal]] => {
+            Display.show("It looks like you can use the beacon to find a List of Signals.")
+            None
+        }
 
-        if (m == manifest[List[Beacon.Signal]]) {
-            // load the map tiles on first use of the map
+        case _ => {
             val req = :/(Global.ServerAddress) / "adventurers"
             val json.JArray(js) = json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody())
             implicit val formats = json.DefaultFormats
@@ -40,9 +42,6 @@ class Beacon(val id : Int, val owner : String) extends Item {
 
                 new Beacon.Signal(x, y, name, Beacon.Signal.Adventurer)
             }).asInstanceOf[T])
-        } else {
-            Display.show("It looks like you can use the beacon to find a List of Signals.")
-            None
         }
     }
 }
