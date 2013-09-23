@@ -39,7 +39,7 @@ object AdventurerItem extends Controller {
             Ok(json.pretty(json.render(rows().map { row =>
                 ("id" -> row[Int]("id")) ~
                 ("kind" -> row[String]("kind")) ~
-                ("attrs" -> row[Option[String]]("attrs").getOrElse("")) ~
+                ("attrs" -> json.parse(row[Option[String]]("attrs").getOrElse("null"))) ~
                 ("owner" -> row[String]("owner"))
             }))).as("application/json")
         }
@@ -56,7 +56,7 @@ object AdventurerItem extends Controller {
                 Ok(json.pretty(json.render(
                     ("id" -> row[Int]("id")) ~
                     ("kind" -> row[String]("kind")) ~
-                    ("attrs" -> row[Option[String]]("attrs").getOrElse("")) ~
+                    ("attrs" -> json.parse(row[Option[String]]("attrs").getOrElse("null"))) ~
                     ("owner" -> row[String]("owner"))
                 ))).as("application/json")
             }
