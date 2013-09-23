@@ -2,6 +2,7 @@ import nz.org.sesa.los.client.Adventurer
 import nz.org.sesa.los.client
 import nz.org.sesa.los.client.items
 import nz.org.sesa.los.client.util
+import util.Display
 
 import scala.tools.nsc.Settings
 import scala.tools.nsc.interpreter.ILoop
@@ -13,6 +14,8 @@ package object los {
             intp.quietImport("los._")
             intp.quietRun("vals.isettings.maxPrintString = 0")
         }
+
+        override def prompt = s"${Display.fg(196)}scala>${Display.Reset} "
     }
 
     val login = Adventurer.login(_)

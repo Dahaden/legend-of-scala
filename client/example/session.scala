@@ -73,7 +73,7 @@ def showMap = {
     var lastY = 0
 
     println(tiles.filter(aroundMe(25)).map(tile => {
-        var s = legend.use[String](tile)
+        var s = legend.use[String](tile).head
         if (tile.y != lastY) {
             s = "\n" + s
         }

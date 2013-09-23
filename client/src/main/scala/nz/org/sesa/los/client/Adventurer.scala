@@ -113,13 +113,12 @@ ${Display.fg(238)}
 :.....::.....:..:::::..........:::::.${Display.fg(244)}
 :::::::::::::::::::::::::::::::::::::${Display.fg(238)}
 :::::::::::::::::::::::::::::::::::::${Display.Reset}
-${Display.StartHilight}
+
  * Why don't you start off by `.look`ing around?
 
  * Or maybe checking your `.inventory`?
 
  * If you're really adventurous, you can start `.move`ing around to the "north", "south", "east" and "west".
-${Display.Reset}
 """)
     }
 
