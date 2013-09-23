@@ -19,30 +19,30 @@ trait Item {
     def name : String
     def examine : String
 
-    def ensureRemoting : Boolean
+    def remoting : Boolean = true
 
     def use[T : Manifest](args: Any*) : T = {
-        if (this.ensureRemoting) {
-            // ensure the item is still remoting for the owner
-            val req = :/(Global.ServerAddress) / "adventurers" / owner / "items" / this.id
+        if (!this.remoting) {
+            return this.action(args: _*)
+        }
 
-            implicit val formats = json.DefaultFormats
+        // ensure the item is still remoting for the owner
+        val req = :/(Global.ServerAddress) / "adventurers" / owner / "items" / this.id
 
-            val resp = Await.result(Global.http(req), Duration.Inf)
-            var js = json.parse(resp.getResponseBody())
+        implicit val formats = json.DefaultFormats
 
-            resp.getStatusCode() match {
-                case 200 => {
-                    this.action(args: _*)
-                }
+        val resp = Await.result(Global.http(req), Duration.Inf)
+        var js = json.parse(resp.getResponseBody())
 
-                case 404 => {
-                    Display.show((js \ "why").extract[String])
-                    throw new Item.OAK()
-                }
+        resp.getStatusCode() match {
+            case 200 => {
+                this.action(args: _*)
             }
-        } else {
-            this.action(args: _*)
+
+            case 404 => {
+                Display.show((js \ "why").extract[String])
+                throw new Item.OAK()
+            }
         }
     }
 

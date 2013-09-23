@@ -37,6 +37,7 @@ private object Legend {
 class Legend(val id: Int, val owner : String) extends Item {
     def name = "map legend"
     def examine = "It's a torn off piece of paper, with some kind of map legend on it."
+    override def remoting : Boolean = false
     def action[T : Manifest](args: Any*) = {
         val m = manifest[T]
 
@@ -55,5 +56,4 @@ class Legend(val id: Int, val owner : String) extends Item {
             throw new Item.OAK()
         }
     }.asInstanceOf[T]
-    def ensureRemoting = false
 }
