@@ -7,7 +7,7 @@ object Beacon {
     type Coordinate = (Int, Int)
 }
 
-class Beacon(val id : Int) extends Item[Set[Beacon.Coordinate]] {
+class Beacon(val id : Int) extends Item {
     def name = "handheld beacon"
     def examine = "It's some kind of glowing gem with weird glyphs on it. You can use it to find things on the map."
     def use(args: Any*) = {

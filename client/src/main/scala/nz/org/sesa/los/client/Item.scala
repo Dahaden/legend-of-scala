@@ -2,7 +2,9 @@ package nz.org.sesa.los.client
 
 import nz.org.sesa.los.client.util._
 
-trait Item[T] {
+import scala.language.existentials
+
+trait Item {
     val id : Int
 
     def rejectUse() {
@@ -11,7 +13,13 @@ trait Item[T] {
 
     def name : String
     def examine : String
-    def use(args: Any*) : T
+
+    /**
+     * use :: forall a. [Any] -> a
+     *
+     * Terrible, terrible existential typing.
+     */
+    def use(args: Any*) : T forSome { type T }
 
     override def toString = {
         (this.name.charAt(0) match {

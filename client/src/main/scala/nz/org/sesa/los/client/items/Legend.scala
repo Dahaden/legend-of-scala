@@ -34,7 +34,7 @@ private object Legend {
     )
 }
 
-class Legend(val id: Int) extends Item[String] {
+class Legend(val id: Int) extends Item {
     def name = "map legend"
     def examine = "It's a torn off piece of paper, with some kind of map legend on it."
     def use(args: Any*) = {
