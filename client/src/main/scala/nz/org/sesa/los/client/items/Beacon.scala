@@ -24,6 +24,17 @@ object Beacon {
 class Beacon(val id : Int, val owner : String) extends Item {
     def name = "beacon"
     def examine = "It's some kind of glowing gem with weird glyphs on it. You can use it to find things on the map."
+    def image = s"""
+|    ${27.toChar}[1m${27.toChar}[48;5;31m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;31m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;31m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;31m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;25m  ${27.toChar}[0m
+|  ${27.toChar}[1m${27.toChar}[48;5;31m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;15m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;15m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;195m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;195m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;81m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;25m  ${27.toChar}[0m
+|${27.toChar}[1m${27.toChar}[48;5;31m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;15m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;81m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;38m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;38m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;31m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;31m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;117m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;25m  ${27.toChar}[0m
+|${27.toChar}[1m${27.toChar}[48;5;31m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;67m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;255m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;255m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;15m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;15m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;123m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;31m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;25m  ${27.toChar}[0m
+|${27.toChar}[1m${27.toChar}[48;5;31m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;81m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;31m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;81m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;123m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;81m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;31m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;117m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;25m  ${27.toChar}[0m
+|  ${27.toChar}[1m${27.toChar}[48;5;25m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;80m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;31m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;38m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;31m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;195m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;25m  ${27.toChar}[0m
+|    ${27.toChar}[1m${27.toChar}[48;5;25m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;74m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;24m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;195m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;25m  ${27.toChar}[0m
+|      ${27.toChar}[1m${27.toChar}[48;5;25m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;81m  ${27.toChar}[0m${27.toChar}[1m${27.toChar}[48;5;25m  ${27.toChar}[0m
+|        ${27.toChar}[1m${27.toChar}[48;5;25m  ${27.toChar}[0m
+""".trim.stripMargin
     def action[T : Manifest](args: Any*) = () match {
         case _ if manifest[T] != manifest[List[Beacon.Signal]] => {
             Display.show("It looks like you can use the beacon to find a List of Signals.")

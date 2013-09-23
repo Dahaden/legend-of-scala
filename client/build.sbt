@@ -14,5 +14,3 @@ libraryDependencies ++= Seq(
   "net.liftweb" % "lift-json_2.10" % "2.5.1",
   "org.slf4j" % "slf4j-simple" % "1.6.4"
 )
-
-initialCommands in console := "import los._"

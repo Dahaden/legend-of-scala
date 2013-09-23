@@ -9,7 +9,9 @@ import scala.tools.nsc.interpreter.ILoop
 package object los {
     private class LosILoop extends ILoop {
         addThunk {
+            enablePowerMode(true)
             intp.quietImport("los._")
+            intp.quietRun("vals.isettings.maxPrintString = 0")
         }
     }
 

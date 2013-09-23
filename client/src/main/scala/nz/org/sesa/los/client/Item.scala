@@ -13,6 +13,7 @@ trait Item {
     val owner : String
 
     def name : String
+    def image : String
     def examine : String
 
     def remoting : Boolean = true
@@ -45,9 +46,11 @@ trait Item {
     def action[T : Manifest](args: Any*) : Option[T]
 
     override def toString = {
+        "\n" + Display.StartHilight +
         (this.name.charAt(0) match {
             case 'a' | 'e' | 'i' | 'o' | 'u' => "an"
             case _ => "a"
-        }) + " " + this.name
+        }) + " " + this.name + Display.Reset + "\n\n" +
+        this.image + "\n"
     }
 }
