@@ -143,6 +143,7 @@ def makeTarget(pred : Signal => Boolean) = () => {
 }
 
 var target = makeTarget({ signal =>
+    true
 })
 
 showTile = (tile : Tile) => (tile.x, tile.y) match {

@@ -56,4 +56,5 @@ class PaperMap(val id : Int, val owner : String) extends Item {
             }
         }
     }.asInstanceOf[T]
+    def ensureRemoting = false
 }

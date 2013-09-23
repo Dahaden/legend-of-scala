@@ -26,4 +26,5 @@ class Beacon(val id : Int, val owner : String) extends Item {
             throw new Item.OAK()
         }
     }.asInstanceOf[T]
+    def ensureRemoting = false
 }
