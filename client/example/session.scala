@@ -173,4 +173,4 @@ me.afterMove = () => {
     print(me.look)
 }
 
-case class SworldMold(hilt: Item, blade: Item)
+case class SwordMold(hilt: Item, blade: Item)
