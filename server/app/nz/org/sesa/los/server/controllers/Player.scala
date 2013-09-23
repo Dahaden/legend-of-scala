@@ -125,12 +125,17 @@ object Player extends Controller {
 
                 val direction = (js \ "direction").extract[String]
                 direction match {
-                    case "north" | "south" | "east" | "west" => {
+                    case "north" | "south" | "east" | "west" |
+                         "northwest" | "southwest" | "northeast" | "southeast" => {
                         val (dx, dy) = direction match {
                             case "north" => (0, -1)
+                            case "northwest" => (-1, -1)
                             case "south" => (0, 1)
+                            case "southwest" => (-1, 1)
                             case "east" => (1, 0)
+                            case "northeast" => (1, -1)
                             case "west" => (-1, 0)
+                            case "southeast" => (1, 1)
                         }
 
                         val x = row[Int]("x") + dx

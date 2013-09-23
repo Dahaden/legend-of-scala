@@ -14,7 +14,7 @@ object Player {
     private val FriendlyTerrainNane = Map(
         "ocean" -> "Ocean",
         "coast" -> "Coast",
-        "lakeshore" -> "Shore of Lake",
+        "lakeshore" -> "Lakeshore",
         "lake" -> "Lake",
         "river" -> "River",
         "marsh" -> "Marsh",
@@ -25,19 +25,19 @@ object Player {
         "road3" -> "Road",
         "bridge" -> "Bridge",
         "lava" -> "Lava",
-        "snow" -> "Snow",
+        "snow" -> "Snowfield",
         "tundra" -> "Tundra",
-        "bare" -> "Wasteland",
+        "bare" -> "Barren",
         "scorched" -> "Scorched Land",
-        "taiga" -> "Taiga",
+        "taiga" -> "Boreal Forest",
         "shrubland" -> "Shrubland",
-        "temperate-desert" -> "Temperate Desert",
-        "temperate-rain-forest" -> "Temperate Rainforest",
-        "temperate-deciduous-forest" -> "Temperest Deciduous Forest",
+        "temperate-desert" -> "Desert, Temperate",
+        "temperate-rain-forest" -> "Rainforest, Temperate",
+        "temperate-deciduous-forest" -> "Deciduous Forest, Temperate",
         "grassland" -> "Grassland",
-        "subtropical-desert" -> "Subtropical Desert",
-        "tropical-rain-forest" -> "Tropical Rainforest",
-        "tropical-seasonal-forest" -> "Tropical Seasonal Forest"
+        "subtropical-desert" -> "Desert, Subtropical",
+        "tropical-rain-forest" -> "Rainforest, Tropical",
+        "tropical-seasonal-forest" -> "Seasonal Forest, Tropical"
     )
 
     // TODO: write the flavor text
@@ -54,7 +54,7 @@ object Player {
         "road2" -> 237,
         "road3" -> 239,
         "bridge" -> 241,
-        "lava" -> 167,
+        "lava" -> "AAH AAH AAH YOU'RE STANDING IN LAVA",
         "snow" -> 15,
         "tundra" -> 249,
         "bare" -> 102,

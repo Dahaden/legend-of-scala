@@ -101,29 +101,31 @@ def showMap = {
 
 // Now that we have a map, let's go exploring.
 me.move("north")
-print(me.look)
 showMap
+print(me.look)
 
 // Eh, why don't we write a lambda function that shows us the map and prints
 // out what we're looking at every time we move?
 me.afterMove = () => {
-    print(me.look)
     showMap
+    print(me.look)
 }
 
 me.move("north")
 
 // Typing that is cumbersome.
-def n = me.move("north")
+def w = me.move("north")
+def wa = me.move("northwest")
 def s = me.move("south")
-def e = me.move("east")
-def w = me.move("west")
+def sa = me.move("southwest")
+def d = me.move("east")
+def wd = me.move("northeast")
+def a = me.move("west")
+def sd = me.move("southeast")
 
 // Still cumbersome.
-def ni(i: Int) : Bool = i match { case 0 => true; case i => { if (n) ni(i - 1) else false } }
-def si(i: Int) : Bool = i match { case 0 => true; case i => { if (s) si(i - 1) else false } }
-def ei(i: Int) : Bool = i match { case 0 => true; case i => { if (e) ei(i - 1) else false } }
-def wi(i: Int) : Bool = i match { case 0 => true; case i => { if (w) wi(i - 1) else false } }
+def rep(n : Int, f : () => _) =
+    (1 to n).foreach(_ => f())
 
 // Okay, cool. What's this beacon dealio in our inventory?
 val beacon = retrieve("handheld beacon")
