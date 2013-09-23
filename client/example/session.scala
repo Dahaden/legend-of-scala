@@ -82,8 +82,8 @@ def showMap = {
 }
 
 // What if we wanted to see ourselves on the map?
-var showTile = (tile : Tile) => (tile.x, tile.y) match {
-    case (x, y) if x == me.x && y == me.y => Markers.Me
+def showTile(tile : Tile) = (tile.x, tile.y) match {
+    case (x, y) if (x, y) == (me.x, me.y) => Markers.Me
     case _ => legend.use[String](tile)
 }
 
@@ -137,28 +137,40 @@ beacon.use()
 beacon.use[List[Signal]]()
 
 // Let's try find another adventurer.
-def makeTarget(pred : Signal => Boolean) = () => {
+def makeTarget(pred : Signal => Boolean)() = {
     beacon.use[List[Signal]]().find(pred).fold (-1, -1) { signal =>
         (signal.x, signal.y)
     }
 }
 
-var updateTarget = makeTarget({ signal =>
+var target = makeTarget({ signal =>
     signal.kind == Signal.Adventurer && signal.name == "username2"
 })
 
-var target = (-1, -1)
-
-me.afterMove = () => {
-    target = updateTarget()
-    showMap
-    print(me.look)
+def showTile(tile : Tile, target : (Int, Int)) = (tile.x, tile.y) match {
+    case (x, y) if (x, y) == target => Markers.Target
+    case (x, y) if (x, y) == (me.x, me.y) => Markers.Me
+    case _ => legend.use[String](tile)
 }
 
-showTile = (tile : Tile) => (tile.x, tile.y) match {
-    case (x, y) if (x, y) == target => Markers.Target
-    case (x, y) if x == me.x && y == me.y => Markers.Me
-    case _ => legend.use[String](tile)
+def showMap = {
+    var lastY = 0
+    var tgt = target()
+
+    println(tiles.filter(aroundMe(25)).map(tile => {
+        var s = showTile(tile, tgt)
+        if (tile.y != lastY) {
+            s = "\n" + s
+        }
+        lastY = tile.y
+        s
+    }).mkString)
+}
+
+// Use our new showMap function every time we move.
+me.afterMove = () => {
+    showMap
+    print(me.look)
 }
 
 case class SworldMold(hilt: Item, blade: Item)
