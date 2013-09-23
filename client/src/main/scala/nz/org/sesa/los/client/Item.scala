@@ -46,11 +46,15 @@ trait Item {
     def action[T : Manifest](args: Any*) : Option[T]
 
     override def toString = {
-        "\n" + Display.StartHilight +
-        (this.name.charAt(0) match {
-            case 'a' | 'e' | 'i' | 'o' | 'u' => "an"
-            case _ => "a"
-        }) + " " + this.name + Display.Reset + "\n\n" +
-        this.image + "\n"
+        val imageLines = this.image.split("\n")
+
+        "\n" + imageLines.zipWithIndex.map { case (l, i) =>
+            if (i == imageLines.length / 2) {
+                val numSpaces = l.filter({x => x == ' '}).length
+                l + (numSpaces to 28).map(_ => " ").mkString + this.name
+            } else {
+                l
+            }
+        }.mkString("\n") + "\n"
     }
 }
