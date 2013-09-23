@@ -11,19 +11,36 @@ import net.liftweb.json
 import net.liftweb.json.JsonDSL._
 import scala.util.Random
 
-object Player extends Controller {
-    private def getPlayerRow(playerName : String) = {
-        val rows = DB.withConnection { implicit c =>
-            SQL("""SELECT id, name, x, y
-                   FROM players
-                   WHERE name = {name}""").on(
-                "name" -> playerName
-            ).apply()
-        }.toList
+object Adventurer extends Controller {
+    private def getRow(adventurerName : String) = {
+        DB.withConnection { implicit c =>
+            val rows = SQL("""SELECT id, name, level, x, y, hp, xp
+                              FROM adventurers
+                              WHERE name = {name}""").on(
+                "name" -> adventurerName
+            )
 
-        rows match {
-            case Nil => None
-            case row::_ => Some(row)
+            rows().toList match {
+                case Nil => None
+                case row::_ => Some(row)
+            }
+        }
+    }
+
+    def index() = Action { request =>
+        DB.withConnection { implicit c =>
+            val rows = SQL("""SELECT id, name, level, x, y, hp, xp
+                              FROM adventurers""")
+
+            Ok(json.pretty(json.render(rows().map { row =>
+                ("id"   -> row[Int]("id")) ~
+                ("name" -> row[String]("name")) ~
+                ("level"-> row[Int]("level")) ~
+                ("x"    -> row[Int]("x")) ~
+                ("y"    -> row[Int]("y")) ~
+                ("hp"   -> row[Int]("hp")) ~
+                ("xp"   -> row[Int]("xp"))
+            }))).as("application/json")
         }
     }
 
@@ -43,13 +60,22 @@ object Player extends Controller {
         val rand = new Random(System.currentTimeMillis());
         val (x, y) = locs(rand.nextInt(locs.length))
 
+        // LOL WHAT ARE TRANSACTIONS
         DB.withConnection { implicit c =>
-            SQL("""INSERT INTO players(name, x, y)
-                   VALUES({name}, {x}, {y})""").on(
+            val id = SQL("""INSERT INTO adventurers(name, level, x, y, hp, xp)
+                            VALUES({name}, 1, {x}, {y}, 100, 0)""").on(
                 "name" -> name,
                 "x" -> x,
                 "y" -> y
-            ).execute()
+            ).executeInsert().get
+
+            List("paper-map", "legend", "beacon").foreach { kind =>
+                SQL("""INSERT into items(kind, owner_id)
+                     VALUES ({kind}, {id})""").on(
+                    "kind" -> kind,
+                    "id" -> id
+                ).execute()
+            }
         }
 
         Ok(json.pretty(json.render(
@@ -57,43 +83,32 @@ object Player extends Controller {
         ))).as("application/json")
     }
 
-    def view(playerName : String) = Action { request =>
-        this.getPlayerRow(playerName) match {
+    def view(adventurerName : String) = Action { request =>
+        this.getRow(adventurerName) match {
             case None => {
                 NotFound(json.pretty(json.render(
-                    ("why" -> s"Sorry, but you, $playerName, are not an adventurer.")
+                    ("why" -> s"Sorry, but you, $adventurerName, are not an adventurer.")
                 ))).as("application/json")
             }
             case Some(row) => {
                 Ok(json.pretty(json.render(
                     ("id"   -> row[Int]("id")) ~
                     ("name" -> row[String]("name")) ~
+                    ("level"-> row[Int]("level")) ~
                     ("x"    -> row[Int]("x")) ~
-                    ("y"    -> row[Int]("y"))
+                    ("y"    -> row[Int]("y")) ~
+                    ("hp"   -> row[Int]("hp")) ~
+                    ("xp"   -> row[Int]("xp"))
                 ))).as("application/json")
             }
         }
     }
 
-    def inventory(playerName : String) = Action { request =>
-        // TODO: look up inventory in the inventory table
-        Ok(json.pretty(json.render(List(
-            ("id" -> 1) ~
-            ("kind" -> "paper-map"),
-
-            ("id" -> 2) ~
-            ("kind" -> "legend"),
-
-            ("id" -> 3) ~
-            ("kind" -> "beacon")
-        )))).as("application/json")
-    }
-
-    def look(playerName : String) = Action { request =>
-        this.getPlayerRow(playerName) match {
+    def look(adventurerName : String) = Action { request =>
+        this.getRow(adventurerName) match {
             case None => {
                 NotFound(json.pretty(json.render(
-                    ("why" -> s"Sorry, but you, $playerName, are not an adventurer.")
+                    ("why" -> s"Sorry, but you, $adventurerName, are not an adventurer.")
                 ))).as("application/json")
             }
             case Some(row) => {
@@ -112,11 +127,11 @@ object Player extends Controller {
         }
     }
 
-    def move(playerName : String) = Action(parse.tolerantText) { request =>
-        this.getPlayerRow(playerName) match {
+    def move(adventurerName : String) = Action(parse.tolerantText) { request =>
+        this.getRow(adventurerName) match {
             case None => {
                 NotFound(json.pretty(json.render(
-                    ("why" -> s"Sorry, but you, $playerName, are not an adventurer.")
+                    ("why" -> s"Sorry, but you, $adventurerName, are not an adventurer.")
                 ))).as("application/json")
             }
             case Some(row) => {
@@ -151,10 +166,10 @@ object Player extends Controller {
                                 ))).as("application/json")
                             case _ => {
                                 val rows = DB.withConnection { implicit c =>
-                                    SQL("""UPDATE players
+                                    SQL("""UPDATE adventurers
                                            SET x = {x}, y = {y}
                                            WHERE name = {name}""").on(
-                                        "name" -> playerName,
+                                        "name" -> adventurerName,
                                         "x" -> x,
                                         "y" -> y
                                     ).execute()

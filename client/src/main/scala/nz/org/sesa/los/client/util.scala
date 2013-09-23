@@ -12,7 +12,7 @@ object Display {
 
 object Markers {
     val Me = Display.Bold + Display.fg(0) + Display.bg(226) + "u!" + Display.Reset
-    var Player = Display.Bold + Display.fg(0) + Display.bg(82) + "pl" + Display.Reset
+    var Target = Display.Bold + Display.fg(0) + Display.bg(82) + "tg" + Display.Reset
 }
 
 object Features {

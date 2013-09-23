@@ -15,7 +15,8 @@ PREFIXES = [
     "light",
     "radiant",
     "dark",
-    "ultra"
+    "ultra",
+    "pwn"
 ]
 
 SUFFIXES = [
@@ -41,6 +42,8 @@ TRANSFORMS = [
     lambda x: "".join(c.lower() if i % 2 == 0 else c.upper() for i, c in enumerate(x)),
     lambda x: x.upper(),
     lambda x: "".join(c.upper() if c != "i" else c for c in x),
+    lambda x: x.replace("o", "0"),
+    lambda x: x.replace("i", "1"),
     lambda x: "xX" + x + "Xx"
 ]
 

@@ -34,18 +34,25 @@ private object Legend {
     )
 }
 
-class Legend(val id: Int) extends Item {
+class Legend(val id: Int, val owner : String) extends Item {
     def name = "map legend"
     def examine = "It's a torn off piece of paper, with some kind of map legend on it."
-    def use(args: Any*) = {
-        if (args.length != 1) {
-            Display.show("Hm, you need something to use this legend with... maybe a map tile?")
-            ""
-        } else {
-            val s = args(0).asInstanceOf[Tile].terrain
+    def action[T : Manifest](args: Any*) = {
+        val m = manifest[T]
+
+        if (m == manifest[String]) {
+            if (args.length != 1) {
+                Display.show("Hm, you need something to use this legend with... maybe a map tile?")
+                throw new Item.OAK()
+            }
+
+            val s = args(0).asInstanceOf[PaperMap.Tile].terrain
             val c = Legend.Colors.getOrElse(s, 0)
 
             Display.fg(c) + Display.bg(c) + "  " + Display.Reset
+        } else {
+            Display.show("It looks like you can use this legend to find Strings.")
+            throw new Item.OAK()
         }
-    }
+    }.asInstanceOf[T]
 }

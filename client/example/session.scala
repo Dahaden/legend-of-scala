@@ -3,7 +3,7 @@
 //
 // So, to get started, do the following (but replace your username with the
 // username you have).
-val me = los.login("username")
+val me = login("username")
 
 // Okay, you seem to be in some sort of game. Why don't we take a look around?
 me.look
@@ -32,21 +32,22 @@ val map = retrieve("paper map")
 // Okay, that's cool. Let's use our map.
 map.use()
 
+// Hmm...
+map.use[List[Tile]]()
+
 // Whoa, there's just a list of tiles. Let's store this somewhere.
-val tiles = map.use()
+val tiles = map.use[List[Tile]]()
 
 // Let's get one tile from it.
-tiles(0)
-
-// Hm, that's not the right type.
-val tiles = map.use[List[los.Tile]]()
 tiles(0)
 
 // Hooray! Let's take the legend out of our inventory too.
 val legend = retrieve("map legend")
 
-// What happens when we use the legend on a map tile?
-legend.use(tiles(0))
+// Let's try using this legend.
+legend.use()
+legend.use[String]()
+legend.use[String](tiles(0))
 
 // Hey, we get a colored tile! We can just go through all the tiles and apply
 // the legend to them, right?
@@ -56,7 +57,7 @@ tiles.length
 me.x
 me.y
 
-def aroundMe(range: Int)(tile: los.Tile) =
+def aroundMe(range: Int)(tile: Tile) =
     tile.x >= me.x - range && tile.x <= me.x + range && tile.y >= me.y - range && tile.y <= me.y + range
 
 // Let's have a go writing showMap.
@@ -64,14 +65,14 @@ tiles.filter(aroundMe(5))
 
 // Maybe 25 tiles.
 def showMap =
-    print(tiles.filter(aroundMe(25)).map(legend.use(_)).mkString)
+    print(tiles.filter(aroundMe(25)).map(legend.use[String](_)).mkString)
 
 // ... not quite.
 def showMap = {
     var lastY = 0
 
     println(tiles.filter(aroundMe(25)).map(tile => {
-        var s = legend.use(tile)
+        var s = legend.use[String](tile)
         if (tile.y != lastY) {
             s = "\n" + s
         }
@@ -81,9 +82,9 @@ def showMap = {
 }
 
 // What if we wanted to see ourselves on the map?
-var showTile = (tile : los.Tile) => (tile.x, tile.y) match {
-    case (x, y) if x == me.x && y == me.y => los.Markers.Me
-    case _ => legend.use(tile)
+var showTile = (tile : Tile) => (tile.x, tile.y) match {
+    case (x, y) if x == me.x && y == me.y => Markers.Me
+    case _ => legend.use[String](tile)
 }
 
 def showMap = {
@@ -135,9 +136,19 @@ beacon.examine
 beacon.use()
 
 // Let's try find another player.
-def players = beacon.use[Set[los.Coordinate]]("players")
-showTile = (tile : los.Tile) => (tile.x, tile.y) match {
-    case (x, y) if x == me.x && y == me.y => los.Markers.Me
-    case (x, y) if players contains (x, y) => los.Markers.Player
-    case _ => legend.use(tile)
+def makeTarget(pred : Signal => Boolean) = () => {
+    beacon.use[List[Signal]]().find(pred).fold (-1, -1) { signal =>
+        (signal.x, signal.y)
+    }
 }
+
+var target = makeTarget({ signal =>
+})
+
+showTile = (tile : Tile) => (tile.x, tile.y) match {
+    case (x, y) if x == me.x && y == me.y => Markers.Me
+    case (x, y) if (x, y) == target() => Markers.Target
+    case _ => legend.use[String](tile)
+}
+
+case class SwordRecipe(hilt: Item, blade: Item)
