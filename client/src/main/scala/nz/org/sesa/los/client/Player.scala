@@ -153,7 +153,6 @@ case class Player private(private val id : Int, val name : String, private var x
                 case "paper-map" => new PaperMap(h.id)
                 case "legend" => new Legend(h.id)
                 case "beacon" => new Beacon(h.id)
-                case _ => null
             }
         }
     }
@@ -191,5 +190,5 @@ case class Player private(private val id : Int, val name : String, private var x
         }
     }
 
-    override def toString = s"<Player: $name>"
+    override def toString = s"Player $name @ ($x, $y)"
 }

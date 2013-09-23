@@ -22,15 +22,17 @@ private object PaperMap {
     private var tiles : List[Tile] = null
 }
 
-class PaperMap(val id : Int) extends Item {
+class PaperMap(val id : Int) extends Item[List[Tile]] {
     def name = "paper map"
     def examine = "It's a map, but the legend is missing."
-    def use[T : Defaults[Any]#To](args: Any*) = {
+    def use(args: Any*) = {
         if (args.length != 0) {
             this.rejectUse()
             List[Tile]()
         } else {
             if (PaperMap.tiles == null) {
+                Display.show("You open your map, and find a bunch of tiles. Maybe you can use them with your legend...?")
+
                 // load the map tiles on first use of the map
                 val req = :/(Global.ServerAddress) / "map"
                 val json.JArray(js) = json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody())
@@ -46,5 +48,5 @@ class PaperMap(val id : Int) extends Item {
             }
             PaperMap.tiles
         }
-    }.asInstanceOf[T]
+    }
 }
