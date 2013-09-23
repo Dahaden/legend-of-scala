@@ -57,7 +57,7 @@ class Map(val id : Int, val owner : String) extends Item {
                 }
                 Map.tiles
             } else {
-                Display.show("It seems like this item needs to be used as a List of Tiles.")
+                Display.show("It seems like this item needs to be used to find a List of Tiles.")
                 throw new Item.OAK()
             }
         }
