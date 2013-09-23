@@ -37,15 +37,15 @@ private object Legend {
 class Legend(val id: Int) extends Item {
     def name = "map legend"
     def examine = "It's a torn off piece of paper, with some kind of map legend on it."
-    def use(args: Any*) : Any = {
+    def use[T : Defaults[Any]#To](args: Any*) = {
         if (args.length != 1) {
             this.rejectUse()
-            return null
+            "  "
+        } else {
+            val s = args(0).asInstanceOf[Tile].terrain
+            val c = Legend.Colors.getOrElse(s, 0)
+
+            Display.fg(c) + Display.bg(c) + "  " + Display.Reset
         }
-
-        val s = args(0).asInstanceOf[Tile].terrain
-        val c = Legend.Colors.getOrElse(s, 0)
-
-        Display.fg(c) + Display.bg(c) + "  " + Display.Reset
-    }
+    }.asInstanceOf[T]
 }

@@ -11,7 +11,7 @@ trait Item {
 
     def name : String
     def examine : String
-    def use(args: Any*) : Any
+    def use[T : Defaults[Any]#To](args: Any*) : T
 
     override def toString = {
         (this.name.charAt(0) match {

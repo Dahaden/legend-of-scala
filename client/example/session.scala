@@ -39,7 +39,7 @@ val tiles = map.use()
 tiles(0)
 
 // Hm, that's not the right type.
-val tiles = map.use().asInstanceOf[List[los.Tile]]
+val tiles = map.use[List[los.Tile]]()
 tiles(0)
 
 // Hooray! Let's take the legend out of our inventory too.
@@ -133,7 +133,7 @@ beacon.examine
 beacon.use()
 
 // Let's try find another player.
-def players = beacon.use("players").asInstanceOf[Set[los.Coordinate]]
+def players = beacon.use[Set[los.Coordinate]]("players")
 showTile = (tile : los.Tile) => (tile.x, tile.y) match {
     case (x, y) if x == me.x && y == me.y => los.Markers.Me
     case (x, y) if players contains (x, y) => los.Markers.Player

@@ -1,5 +1,16 @@
 package nz.org.sesa.los.client.util
 
+sealed class DefaultsTo[A, B]
+trait LowPriorityDefaultsTo {
+    implicit def overrideDefault[A,B] = new DefaultsTo[A,B]
+}
+object DefaultsTo extends LowPriorityDefaultsTo {
+    implicit def default[B] = new DefaultsTo[B, B]
+}
+class Defaults[B] {
+    type To[A] = DefaultsTo[A,B]
+}
+
 object Display {
     val Reset = 27.toChar + "[0m"
     val Bold = 27.toChar + "[1m"
