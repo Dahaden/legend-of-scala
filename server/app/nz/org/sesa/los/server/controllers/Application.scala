@@ -19,8 +19,4 @@ object Application extends Controller {
         implicit val formats = json.DefaultFormats
         Ok(json.pretty(json.render(decompose(World.world.tiles)))).as("application/json")
     }
-
-    def beacon = Action { request =>
-        Ok("").as("application/json")
-    }
 }

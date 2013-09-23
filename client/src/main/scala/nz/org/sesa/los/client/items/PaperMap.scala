@@ -14,11 +14,29 @@ import scala.concurrent.duration._
 object PaperMap {
     private val Stride = 150
 
-    // cache tiles (we're never going to need to update this once we have them)
-    private var tiles : List[Tile] = null
-
     case class Tile(val x : Int, val y : Int, val terrain : String, val features : List[String]) {
         override def toString = s"$terrain at ($x, $y)"
+    }
+
+    private var openedMap : Boolean = false
+
+    // cache tiles (we're never going to need to update this once we have them)
+    lazy val tiles : List[Tile] = {
+        // load the map tiles on first use of the map
+        val req = :/(Global.ServerAddress) / "map"
+        val json.JArray(js) = json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody())
+
+        implicit val formats = json.DefaultFormats
+
+        for { (tile, i) <- js.zipWithIndex } yield {
+            val x = i % Stride
+            val y = i / Stride
+
+            (tile ++ (
+                ("x" -> x) ~
+                ("y" -> y))
+            ).extract[Tile]
+        }
     }
 }
 
@@ -33,24 +51,9 @@ class PaperMap(val id : Int, val owner : String) extends Item {
             throw new Item.OAK()
         } else {
             if (m == manifest[List[PaperMap.Tile]]) {
-                if (PaperMap.tiles == null) {
+                if (!PaperMap.openedMap) {
                     Display.show("You open your map, and find that it has a bunch of colored squares. Maybe you can use them with your legend...?")
-
-                    // load the map tiles on first use of the map
-                    val req = :/(Global.ServerAddress) / "map"
-                    val json.JArray(js) = json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody())
-
-                    implicit val formats = json.DefaultFormats
-
-                    PaperMap.tiles = for { (tile, i) <- js.zipWithIndex } yield {
-                        val x = i % PaperMap.Stride
-                        val y = i / PaperMap.Stride
-
-                        (tile ++ (
-                            ("x" -> x) ~
-                            ("y" -> y))
-                        ).extract[PaperMap.Tile]
-                    }
+                    PaperMap.openedMap = true;
                 }
                 PaperMap.tiles
             } else {

@@ -134,22 +134,31 @@ beacon.examine
 
 // Wow, what a lazy description. At least we know what it does now.
 beacon.use()
+beacon.use[List[Signal]]()
 
-// Let's try find another player.
+// Let's try find another adventurer.
 def makeTarget(pred : Signal => Boolean) = () => {
     beacon.use[List[Signal]]().find(pred).fold (-1, -1) { signal =>
         (signal.x, signal.y)
     }
 }
 
-var target = makeTarget({ signal =>
-    true
+var updateTarget = makeTarget({ signal =>
+    signal.kind == Signal.Adventurer && signal.name == "username2"
 })
 
+var target = (-1, -1)
+
+me.afterMove = () => {
+    target = updateTarget()
+    showMap
+    print(me.look)
+}
+
 showTile = (tile : Tile) => (tile.x, tile.y) match {
+    case (x, y) if (x, y) == target => Markers.Target
     case (x, y) if x == me.x && y == me.y => Markers.Me
-    case (x, y) if (x, y) == target() => Markers.Target
     case _ => legend.use[String](tile)
 }
 
-case class SwordRecipe(hilt: Item, blade: Item)
+case class SworldMold(hilt: Item, blade: Item)

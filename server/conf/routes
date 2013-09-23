@@ -1,6 +1,5 @@
 GET     /                                           nz.org.sesa.los.server.controllers.Application.index
 GET     /map                                        nz.org.sesa.los.server.controllers.Application.map
-GET     /beacon                                     nz.org.sesa.los.server.controllers.Application.beacon
 GET     /adventurers                                nz.org.sesa.los.server.controllers.Adventurer.index
 POST    /adventurers                                nz.org.sesa.los.server.controllers.Adventurer.create
 GET     /adventurers/:adventurerName                nz.org.sesa.los.server.controllers.Adventurer.view(adventurerName: String)

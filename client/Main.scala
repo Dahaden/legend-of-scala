@@ -11,4 +11,5 @@ package object los {
     type Item = client.Item
     type Tile = items.PaperMap.Tile
     type Signal = items.Beacon.Signal
+    val Signal = items.Beacon.Signal
 }
