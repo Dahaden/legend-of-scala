@@ -27,7 +27,7 @@ def retrieve(name: String) =
     me.inventory.find (_.name == name).head
 
 // Neat, now let's retrieve our map.
-val map = retrieve("paper map")
+val map = retrieve("map")
 
 // Okay, that's cool. Let's use our map.
 map.use()
@@ -129,7 +129,7 @@ def rep(n : Int, f : () => _) =
     (1 to n).foreach(_ => f())
 
 // Okay, cool. What's this beacon dealio in our inventory?
-val beacon = retrieve("handheld beacon")
+val beacon = retrieve("beacon")
 beacon.examine
 
 // Wow, what a lazy description. At least we know what it does now.
@@ -137,7 +137,7 @@ beacon.use()
 beacon.use[List[Signal]]()
 
 // Let's try find another adventurer.
-def makeTarget(pred : Signal => Boolean)() = {
+def makeTarget(pred : Signal => Boolean) = () => {
     beacon.use[List[Signal]]().find(pred).fold (-1, -1) { signal =>
         (signal.x, signal.y)
     }

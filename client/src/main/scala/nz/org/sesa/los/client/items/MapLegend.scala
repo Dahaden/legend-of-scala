@@ -3,8 +3,8 @@ package nz.org.sesa.los.client.items
 import nz.org.sesa.los.client.Item
 import nz.org.sesa.los.client.util._
 
-private object Legend {
-    val Colors = Map(
+private object MapLegend {
+    val Colors = scala.collection.immutable.Map(
         "ocean" -> 60,
         "coast" -> 238,
         "lakeshore" -> 24,
@@ -34,7 +34,7 @@ private object Legend {
     )
 }
 
-class Legend(val id: Int, val owner : String) extends Item {
+class MapLegend(val id: Int, val owner : String) extends Item {
     def name = "map legend"
     def examine = "It's a torn off piece of paper, with some kind of map legend on it."
     override def remoting : Boolean = false
@@ -47,8 +47,8 @@ class Legend(val id: Int, val owner : String) extends Item {
                 throw new Item.OAK()
             }
 
-            val s = args(0).asInstanceOf[PaperMap.Tile].terrain
-            val c = Legend.Colors.getOrElse(s, 0)
+            val s = args(0).asInstanceOf[Map.Tile].terrain
+            val c = MapLegend.Colors.getOrElse(s, 0)
 
             Display.fg(c) + Display.bg(c) + "  " + Display.Reset
         } else {

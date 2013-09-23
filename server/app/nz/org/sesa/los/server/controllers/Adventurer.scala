@@ -69,7 +69,7 @@ object Adventurer extends Controller {
                 "y" -> y
             ).executeInsert().get
 
-            List("paper-map", "legend", "beacon").foreach { kind =>
+            List("map", "map-legend", "beacon").foreach { kind =>
                 SQL("""INSERT into items(kind, owner_id)
                      VALUES ({kind}, {id})""").on(
                     "kind" -> kind,

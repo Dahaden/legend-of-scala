@@ -11,7 +11,7 @@ import net.liftweb.json.JsonDSL._
 import scala.concurrent._
 import scala.concurrent.duration._
 
-object PaperMap {
+object Map {
     private val Stride = 150
 
     case class Tile(val x : Int, val y : Int, val terrain : String, val features : List[String]) {
@@ -40,8 +40,8 @@ object PaperMap {
     }
 }
 
-class PaperMap(val id : Int, val owner : String) extends Item {
-    def name = "paper map"
+class Map(val id : Int, val owner : String) extends Item {
+    def name = "map"
     def examine = "It's a map, but the legend is missing."
     def action[T : Manifest](args: Any*) = {
         val m = manifest[T]
@@ -50,12 +50,12 @@ class PaperMap(val id : Int, val owner : String) extends Item {
             Display.show("That's ridiculous, you can't use a map like that.")
             throw new Item.OAK()
         } else {
-            if (m == manifest[List[PaperMap.Tile]]) {
-                if (!PaperMap.openedMap) {
+            if (m == manifest[List[Map.Tile]]) {
+                if (!Map.openedMap) {
                     Display.show("You open your map, and find that it has a bunch of colored squares. Maybe you can use them with your legend...?")
-                    PaperMap.openedMap = true;
+                    Map.openedMap = true;
                 }
-                PaperMap.tiles
+                Map.tiles
             } else {
                 Display.show("It seems like this item needs to be used as a List of Tiles.")
                 throw new Item.OAK()

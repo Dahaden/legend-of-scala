@@ -1,7 +1,6 @@
 package nz.org.sesa.los.client
 
 import nz.org.sesa.los.client.util._
-import nz.org.sesa.los.client.items._
 
 import dispatch._, Defaults._
 import net.liftweb.json
@@ -206,9 +205,9 @@ case class Adventurer private(private val id : Int, val name : String,
 
         json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody()).extract[List[Adventurer.RemoteItemHandle]] map { h =>
             h.kind match {
-                case "paper-map" => new PaperMap(h.id, h.owner)
-                case "legend" => new Legend(h.id, h.owner)
-                case "beacon" => new Beacon(h.id, h.owner)
+                case "map" => new items.Map(h.id, h.owner)
+                case "map-legend" => new items.MapLegend(h.id, h.owner)
+                case "beacon" => new items.Beacon(h.id, h.owner)
             }
         }
     }
