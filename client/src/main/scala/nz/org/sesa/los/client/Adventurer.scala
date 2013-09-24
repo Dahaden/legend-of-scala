@@ -207,15 +207,15 @@ case class Adventurer private(private val id : Int, val name : String,
 
         json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody()).extract[List[Adventurer.RemoteItemHandle]] map { h =>
             h.kind match {
-                case "map" => new items.Map(h.id, h.owner)
-                case "map-legend" => new items.MapLegend(h.id, h.owner)
-                case "beacon" => new items.Beacon(h.id, h.owner)
+                case "map"          => new items.Map(h.id, h.owner)
+                case "map-legend"   => new items.MapLegend(h.id, h.owner)
+                case "beacon"       => new items.Beacon(h.id, h.owner)
             }
         }
     }
 
     def look = {
-        val req = :/(Global.ServerAddress) / "adventurers" / name / "look"
+        val req = :/(Global.ServerAddress) / "realms" / pos.realm / (pos.x.toString + "," + pos.y.toString)
 
         implicit val formats = json.DefaultFormats
 
@@ -248,7 +248,7 @@ case class Adventurer private(private val id : Int, val name : String,
 
         override def toString = s"""
 ${Display.StartHilight}$name, the Level $level $title${Display.Reset}
-Currently at ($pos.x, $pos.y)
+Currently at (${pos.x}, ${pos.y})
 
 ${Display.Bold}${Display.fg(196)}HP:${Display.Reset} $hp/$maxHp
 ${Display.Bold}${Display.fg(226)}XP:${Display.Reset} $xp/$maxXp

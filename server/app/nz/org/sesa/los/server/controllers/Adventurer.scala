@@ -128,34 +128,6 @@ object Adventurer extends Controller {
         }
     }
 
-    // TODO: replace with realms/realmname/x,y
-    def look(adventurerName : String) = Action { request =>
-        this.getRow(adventurerName) match {
-            case None => {
-                NotFound(json.pretty(json.render(
-                    ("why" -> s"Sorry, but you, $adventurerName, are not an adventurer.")
-                ))).as("application/json")
-            }
-            case Some(row) => {
-                val x = row[Int]("x")
-                val y = row[Int]("y")
-                val realm = row[String]("realm")
-
-                val i = y * World.Stride + x
-                val tile = World.world.tiles(i)
-
-                Ok(json.pretty(json.render(
-                    ("terrain" -> tile.terrain) ~
-                    ("pos" ->
-                        ("x" -> x) ~
-                        ("y" -> y) ~
-                        ("realm" -> realm)
-                    )
-                ))).as("application/json")
-            }
-        }
-    }
-
     def move(adventurerName : String) = Action(parse.tolerantText) { request =>
         this.getRow(adventurerName) match {
             case None => {
