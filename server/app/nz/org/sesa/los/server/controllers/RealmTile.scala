@@ -52,7 +52,16 @@ object RealmTile extends Controller {
                     }
                 }
 
-                val exits = List((0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, 1)).map { case (dx, dy) =>
+                val exits = List(
+                    (0, -1), // north
+                    (1, -1), // northeast
+                    (1, 0), // east
+                    (1, 1), // southeast
+                    (0, 1), // south
+                    (-1, 1), // southwest
+                    (-1, 0), // west
+                    (-1, -1) // northwest
+                ).map { case (dx, dy) =>
                     val nx = x + dx
                     val ny = y + dy
 
