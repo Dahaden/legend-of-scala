@@ -38,7 +38,7 @@ private object MapLegend {
     )
 }
 
-class MapLegend(val id: Int, val attrs : json.JObject, val owner : Adventurer) extends Item {
+class MapLegend(val id: Int, val owner : Adventurer) extends Item {
     def name = "map legend"
     def examine = "It's a torn off piece of paper, with some kind of map legend on it."
     def image = Images.Paper
