@@ -80,7 +80,7 @@ object RealmTile extends Controller {
                 Ok(json.pretty(json.render(
                     ("terrain" -> tile.terrain) ~
                     ("features" -> getFeatures(realmName, x, y).map({ row =>
-                        ("id" -> row[Int]("id"))
+                        ("id" -> row[Int]("id")) ~
                         ("kind" -> row[String]("kind")) ~
                         ("attrs" -> json.parse(row[Option[String]]("attrs").getOrElse("null")))
                     })) ~

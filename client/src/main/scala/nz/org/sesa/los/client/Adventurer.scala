@@ -109,7 +109,7 @@ ${Vision.FlavorText.get(terrain).head}
 $possibleExists
 
 ${Display.StartHilight}Features of Interest${Display.Reset}
-Nothing here.
+${features}
 
 ${Display.StartHilight}Monsters${Display.Reset}
 No monsters.

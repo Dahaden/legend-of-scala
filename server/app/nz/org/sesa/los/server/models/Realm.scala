@@ -33,7 +33,7 @@ object Realm {
 
     private val cache : mutable.Map[String, List[Tile]] = mutable.Map().withDefault(loadFromFile)
 
-    case class Tile(val terrain : String, val features : List[String])
+    case class Tile(val terrain : String)
 
     private def loadFromFile(name : String) = {
         implicit val formats = json.DefaultFormats
