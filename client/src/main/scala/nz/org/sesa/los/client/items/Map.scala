@@ -1,5 +1,6 @@
 package nz.org.sesa.los.client.items
 
+import nz.org.sesa.los.client.Adventurer
 import nz.org.sesa.los.client.Global
 import nz.org.sesa.los.client.Position
 import nz.org.sesa.los.client.Item
@@ -13,8 +14,6 @@ import scala.concurrent._
 import scala.concurrent.duration._
 
 object Map {
-    private val Stride = 150
-
     case class Tile(val pos : Position, val terrain : String, val features : List[String]) {
         override def toString = s"t"
     }
@@ -22,16 +21,20 @@ object Map {
     private var openedMap : Boolean = false
 
     // cache tiles (we're never going to need to update this once we have them)
-    lazy val tiles : List[Tile] = {
+    lazy val world : List[Tile] = {
         // load the map tiles on first use of the map
-        val req = :/(Global.ServerAddress) / "map"
-        val json.JArray(js) = json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody())
+        val req = :/(Global.ServerAddress) / "realms" / "world"
+        val js = json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody())
 
         implicit val formats = json.DefaultFormats
 
-        for { (tile, i) <- js.zipWithIndex } yield {
-            val x = i % Stride
-            val y = i / Stride
+        val w = (js \ "w").extract[Int]
+
+        val json.JArray(jsRows) = js \ "tiles"
+
+        for { (tile, i) <- jsRows.zipWithIndex } yield {
+            val x = i % w
+            val y = i / w
 
             (tile ++ (
                 ("pos" ->
@@ -44,7 +47,7 @@ object Map {
     }
 }
 
-class Map(val id : Int, val owner : String) extends Item {
+class Map(val id : Int, val owner : Adventurer) extends Item {
     def name = "map"
     def examine = "It's a map, but the legend is missing."
     def image = s"""
@@ -78,7 +81,7 @@ class Map(val id : Int, val owner : String) extends Item {
                 Display.show("You open your map, and find that it has a bunch of colored squares. Maybe you can use them with your legend...?")
                 Map.openedMap = true;
             }
-            Some(Map.tiles.asInstanceOf[T])
+            Some(Map.world.asInstanceOf[T])
         }
     }
     def ensureRemoting = false

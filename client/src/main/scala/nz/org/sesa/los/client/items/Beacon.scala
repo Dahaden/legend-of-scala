@@ -21,7 +21,7 @@ object Beacon {
     }
 }
 
-class Beacon(val id : Int, val owner : String) extends Item {
+class Beacon(val id : Int, val owner : Adventurer) extends Item {
     def name = "beacon"
     def examine = "It's some kind of glowing gem with weird glyphs on it. You can use it to find things on the map."
     def image = s"""

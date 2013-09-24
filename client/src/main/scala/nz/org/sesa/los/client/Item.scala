@@ -10,7 +10,7 @@ import scala.concurrent.duration._
 
 trait Item {
     val id : Int
-    val owner : String
+    val owner : Adventurer
 
     def name : String
     def image : String
@@ -26,7 +26,7 @@ trait Item {
         }
 
         // ensure the item is still remoting for the owner
-        val req = :/(Global.ServerAddress) / "adventurers" / owner / "items" / this.id
+        val req = :/(Global.ServerAddress) / "adventurers" / owner.name / "items" / this.id
 
         implicit val formats = json.DefaultFormats
 

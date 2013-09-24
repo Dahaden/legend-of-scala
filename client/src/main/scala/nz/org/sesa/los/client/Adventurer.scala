@@ -207,9 +207,9 @@ case class Adventurer private(private val id : Int, val name : String,
 
         json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody()).extract[List[Adventurer.RemoteItemHandle]] map { h =>
             h.kind match {
-                case "map"          => new items.Map(h.id, h.owner)
-                case "map-legend"   => new items.MapLegend(h.id, h.owner)
-                case "beacon"       => new items.Beacon(h.id, h.owner)
+                case "map"          => new items.Map(h.id, this)
+                case "map-legend"   => new items.MapLegend(h.id, this)
+                case "beacon"       => new items.Beacon(h.id, this)
             }
         }
     }

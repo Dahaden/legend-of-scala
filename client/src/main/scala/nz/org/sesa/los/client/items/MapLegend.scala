@@ -1,5 +1,6 @@
 package nz.org.sesa.los.client.items
 
+import nz.org.sesa.los.client.Adventurer
 import nz.org.sesa.los.client.Item
 import nz.org.sesa.los.client.util._
 
@@ -34,7 +35,7 @@ private object MapLegend {
     )
 }
 
-class MapLegend(val id: Int, val owner : String) extends Item {
+class MapLegend(val id: Int, val owner : Adventurer) extends Item {
     def name = "map legend"
     def examine = "It's a torn off piece of paper, with some kind of map legend on it."
     def image = s"""

@@ -1,6 +1,6 @@
 package nz.org.sesa.los.server.controllers
 
-import nz.org.sesa.los.server.models.World
+import nz.org.sesa.los.server.models
 
 import anorm._
 import play.api.Play.current
@@ -20,6 +20,8 @@ object Adventurer extends Controller {
                                      adventurers.x AS x,
                                      adventurers.y AS y,
                                      realms.name AS realm,
+                                     realms.w AS w,
+                                     realms.h AS h,
                                      adventurers.hp AS hp,
                                      adventurers.xp AS xp
                               FROM adventurers, realms
@@ -70,10 +72,11 @@ object Adventurer extends Controller {
 
         val name = (js \ "name").extract[String]
 
-        val locs = World.world.tiles.zipWithIndex.filter { case (t, _) =>
+        val locs = models.Realm.loadTiles("world").zipWithIndex.filter { case (t, _) =>
             t.terrain == "road1" || t.terrain == "road2" || t.terrain == "road3"
         }.map { case (_, i) =>
-            (i % World.Stride, i / World.Stride)
+            // TODO: DON'T HARDCODE THIS!
+            (i % 150, i / 150)
         }
 
         val rand = new Random(System.currentTimeMillis());
@@ -156,10 +159,11 @@ object Adventurer extends Controller {
 
                         val x = row[Int]("x") + dx
                         val y = row[Int]("y") + dy
+                        val w = row[Int]("w")
                         val realm = row[String]("realm")
 
-                        val i = y * World.Stride + x
-                        val tile = World.world.tiles(i)
+                        val i = y * w + x
+                        val tile = models.Realm.loadTiles(realm)(i)
 
                         tile.terrain match {
                             case "ocean" | "lake" | "river" =>

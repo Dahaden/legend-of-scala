@@ -15,7 +15,9 @@ CREATE TABLE adventurers(
 
 CREATE TABLE realms(
     id INTEGER PRIMARY KEY NOT NULL,
-    name VARCHAR(255) UNIQUE NOT NULL
+    name VARCHAR(255) UNIQUE NOT NULL,
+    w INTEGER NOT NULL,
+    h INTEGER NOT NULL
 );
 
 CREATE TABLE items(
@@ -40,4 +42,4 @@ CREATE TABLE features(
     FOREIGN KEY(realm_id) REFERENCES realms(id)
 );
 
-INSERT INTO realms(name) VALUES("world");
+INSERT INTO realms(name, w, h) VALUES("world", 150, 150);
