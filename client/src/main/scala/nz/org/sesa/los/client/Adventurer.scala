@@ -186,8 +186,6 @@ case class Adventurer private(private val id : Int, val name : String,
             "Hero"
         }
 
-    var afterMove = () => {}
-
     private var seenInventory = false
 
     def inventory = {
@@ -245,7 +243,6 @@ case class Adventurer private(private val id : Int, val name : String,
             case 200 => {
                 this.pos_ = js.extract[Position]
                 Display.show(s"You move ${direction.toLowerCase}wards.")
-                this.afterMove()
                 true
             }
         }
