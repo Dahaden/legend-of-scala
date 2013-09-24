@@ -12,8 +12,8 @@ import scala.concurrent._
 import scala.concurrent.duration._
 
 object Beacon {
-    case class Signal(val x : Int, val y : Int, val name : String, val kind : String) {
-        override def toString = s"$kind $name at ($x, $y)"
+    case class Signal(val pos : Position, val name : String, val kind : String) {
+        override def toString = s"$kind $name at ($pos.x, $pos.y)"
     }
 
     object Signal {
@@ -47,11 +47,10 @@ class Beacon(val id : Int, val owner : String) extends Item {
             implicit val formats = json.DefaultFormats
 
             Some((for { adventurer <- js } yield {
-                val x = (adventurer \ "x").extract[Int]
-                val y = (adventurer \ "y").extract[Int]
+                val pos = (adventurer \ "pos").extract[Position]
                 val name = (adventurer \ "name").extract[String]
 
-                new Beacon.Signal(x, y, name, Beacon.Signal.Adventurer)
+                new Beacon.Signal(pos, name, Beacon.Signal.Adventurer)
             }).asInstanceOf[T])
         }
     }

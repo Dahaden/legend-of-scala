@@ -1,6 +1,7 @@
 package nz.org.sesa.los.client.items
 
 import nz.org.sesa.los.client.Global
+import nz.org.sesa.los.client.Position
 import nz.org.sesa.los.client.Item
 import nz.org.sesa.los.client.util._
 
@@ -14,8 +15,8 @@ import scala.concurrent.duration._
 object Map {
     private val Stride = 150
 
-    case class Tile(val x : Int, val y : Int, val terrain : String, val features : List[String]) {
-        override def toString = s"$terrain at ($x, $y)"
+    case class Tile(val pos : Position, val terrain : String, val features : List[String]) {
+        override def toString = s"t"
     }
 
     private var openedMap : Boolean = false
@@ -33,9 +34,12 @@ object Map {
             val y = i / Stride
 
             (tile ++ (
-                ("x" -> x) ~
-                ("y" -> y))
-            ).extract[Tile]
+                ("pos" ->
+                    ("x" -> x) ~
+                    ("y" -> y) ~
+                    ("realm" -> "world")
+                )
+            )).extract[Tile]
         }
     }
 }

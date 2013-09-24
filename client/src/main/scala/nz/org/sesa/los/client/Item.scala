@@ -18,6 +18,8 @@ trait Item {
 
     def remoting : Boolean = true
 
+    def use[T : Manifest] : Option[T] = this.use()
+
     def use[T : Manifest](args: Any*) : Option[T] = {
         if (!this.remoting) {
             return this.action(args: _*)

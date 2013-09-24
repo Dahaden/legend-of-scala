@@ -26,6 +26,7 @@ package object los {
     type Tile = items.Map.Tile
     type Signal = items.Beacon.Signal
     val Signal = items.Beacon.Signal
+    type Position = client.Position
 
     def main(args: Array[String]) {
         val settings = new Settings()

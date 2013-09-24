@@ -14,9 +14,17 @@ import scala.util.Random
 object Adventurer extends Controller {
     private def getRow(adventurerName : String) = {
         DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT id, name, level, x, y, hp, xp
-                              FROM adventurers
-                              WHERE name = {name}""").on(
+            val rows = SQL("""SELECT adventurers.id AS id,
+                                     adventurers.name AS name,
+                                     adventurers.level AS level,
+                                     adventurers.x AS x,
+                                     adventurers.y AS y,
+                                     realms.name AS realm,
+                                     adventurers.hp AS hp,
+                                     adventurers.xp AS xp
+                              FROM adventurers, realms
+                              WHERE adventurers.realm_id = realms.id AND
+                                    adventurers.name = {name}""").on(
                 "name" -> adventurerName
             )
 
@@ -29,15 +37,26 @@ object Adventurer extends Controller {
 
     def index() = Action { request =>
         DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT id, name, level, x, y, hp, xp
-                              FROM adventurers""")
+            val rows = SQL("""SELECT adventurers.id AS id,
+                                     adventurers.name AS name,
+                                     adventurers.level AS level,
+                                     adventurers.x AS x,
+                                     adventurers.y AS y,
+                                     realms.name AS realm,
+                                     adventurers.hp AS hp,
+                                     adventurers.xp AS xp
+                              FROM adventurers, realms
+                              WHERE adventurers.realm_id = realms.id""")
 
             Ok(json.pretty(json.render(rows().map { row =>
                 ("id"   -> row[Int]("id")) ~
                 ("name" -> row[String]("name")) ~
                 ("level"-> row[Int]("level")) ~
-                ("x"    -> row[Int]("x")) ~
-                ("y"    -> row[Int]("y")) ~
+                ("pos" ->
+                    ("x"    -> row[Int]("x")) ~
+                    ("y"    -> row[Int]("y")) ~
+                    ("realm" -> row[String]("realm"))
+                ) ~
                 ("hp"   -> row[Int]("hp")) ~
                 ("xp"   -> row[Int]("xp"))
             }))).as("application/json")
@@ -62,8 +81,10 @@ object Adventurer extends Controller {
 
         // LOL WHAT ARE TRANSACTIONS
         DB.withConnection { implicit c =>
-            val id = SQL("""INSERT INTO adventurers(name, level, x, y, hp, xp)
-                            VALUES({name}, 1, {x}, {y}, 100, 0)""").on(
+            val id = SQL("""INSERT INTO adventurers(name, level, x, y, realm_id, hp, xp)
+                            SELECT {name}, 1, {x}, {y}, id, 100, 0 FROM realms
+                            WHERE name = "world"
+                         """).on(
                 "name" -> name,
                 "x" -> x,
                 "y" -> y
@@ -92,18 +113,22 @@ object Adventurer extends Controller {
             }
             case Some(row) => {
                 Ok(json.pretty(json.render(
-                    ("id"   -> row[Int]("id")) ~
-                    ("name" -> row[String]("name")) ~
-                    ("level"-> row[Int]("level")) ~
-                    ("x"    -> row[Int]("x")) ~
-                    ("y"    -> row[Int]("y")) ~
-                    ("hp"   -> row[Int]("hp")) ~
-                    ("xp"   -> row[Int]("xp"))
+                    ("id"    -> row[Int]("id")) ~
+                    ("name"  -> row[String]("name")) ~
+                    ("level" -> row[Int]("level")) ~
+                    ("pos" ->
+                        ("x"    -> row[Int]("x")) ~
+                        ("y"    -> row[Int]("y")) ~
+                        ("realm" -> row[String]("realm"))
+                    ) ~
+                    ("hp"    -> row[Int]("hp")) ~
+                    ("xp"    -> row[Int]("xp"))
                 ))).as("application/json")
             }
         }
     }
 
+    // TODO: replace with realms/realmname/x,y
     def look(adventurerName : String) = Action { request =>
         this.getRow(adventurerName) match {
             case None => {
@@ -114,14 +139,18 @@ object Adventurer extends Controller {
             case Some(row) => {
                 val x = row[Int]("x")
                 val y = row[Int]("y")
+                val realm = row[String]("realm")
 
                 val i = y * World.Stride + x
                 val tile = World.world.tiles(i)
 
                 Ok(json.pretty(json.render(
                     ("terrain" -> tile.terrain) ~
-                    ("x" -> x) ~
-                    ("y" -> y)
+                    ("pos" ->
+                        ("x" -> x) ~
+                        ("y" -> y) ~
+                        ("realm" -> realm)
+                    )
                 ))).as("application/json")
             }
         }
@@ -155,6 +184,7 @@ object Adventurer extends Controller {
 
                         val x = row[Int]("x") + dx
                         val y = row[Int]("y") + dy
+                        val realm = row[String]("realm")
 
                         val i = y * World.Stride + x
                         val tile = World.world.tiles(i)
@@ -177,7 +207,8 @@ object Adventurer extends Controller {
 
                                 Ok(json.pretty(json.render(
                                     ("x" -> x) ~
-                                    ("y" -> y)
+                                    ("y" -> y) ~
+                                    ("realm" -> realm)
                                 ))).as("application/json")
                             }
                         }

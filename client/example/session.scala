@@ -30,14 +30,14 @@ def retrieve(name: String) =
 val map = retrieve("map")
 
 // Okay, that's cool. Let's use our map.
-map.use()
+map.use
 
 // Hmm...
-map.use[List[Tile]]()
-map.use[List[Tile]]().head
+map.use[List[Tile]]
+map.use[List[Tile]].head.take(10)
 
 // Whoa, there's just a list of tiles. Let's store this somewhere.
-val tiles = map.use[List[Tile]]().head
+val tiles = map.use[List[Tile]].head
 
 // Let's get one tile from it.
 tiles(0)
@@ -46,8 +46,8 @@ tiles(0)
 val legend = retrieve("map legend")
 
 // Let's try using this legend.
-legend.use()
-legend.use[String]()
+legend.use
+legend.use[String]
 legend.use[String](tiles(0)).head
 
 // Hey, we get a colored tile! We can just go through all the tiles and apply
@@ -55,11 +55,10 @@ legend.use[String](tiles(0)).head
 tiles.length
 
 // Okay, that's a really big map. Why don't we just get the tiles around me?
-me.x
-me.y
+me.pos
 
 def aroundMe(range: Int)(tile: Tile) =
-    tile.x >= me.x - range && tile.x <= me.x + range && tile.y >= me.y - range && tile.y <= me.y + range
+    tile.pos.x >= me.pos.x - range && tile.pos.x <= me.pos.x + range && tile.pos.y >= me.pos.y - range && tile.pos.y <= me.pos.y + range
 
 // Let's have a go writing showMap.
 tiles.filter(aroundMe(5))
@@ -74,17 +73,17 @@ def showMap = {
 
     println(tiles.filter(aroundMe(25)).map(tile => {
         var s = legend.use[String](tile).head
-        if (tile.y != lastY) {
+        if (tile.pos.y != lastY) {
             s = "\n" + s
         }
-        lastY = tile.y
+        lastY = tile.pos.y
         s
     }).mkString)
 }
 
 // What if we wanted to see ourselves on the map?
-def showTile(tile : Tile) = (tile.x, tile.y) match {
-    case (x, y) if (x, y) == (me.x, me.y) => Markers.Me
+def showTile(tile : Tile) = tile.pos match {
+    case pos if pos == me.pos => Markers.Me
     case _ => legend.use[String](tile).head
 }
 
@@ -93,10 +92,10 @@ def showMap = {
 
     println(tiles.filter(aroundMe(25)).map(tile => {
         var s = showTile(tile)
-        if (tile.y != lastY) {
+        if (tile.pos.y != lastY) {
             s = "\n" + s
         }
-        lastY = tile.y
+        lastY = tile.pos.y
         s
     }).mkString)
 }
@@ -140,7 +139,7 @@ beacon.use[List[Signal]]()
 // Let's try find another adventurer.
 def makeTarget(pred : Signal => Boolean) = () => {
     beacon.use[List[Signal]]().head.find(pred).fold (-1, -1) { signal =>
-        (signal.x, signal.y)
+        (signal.pos.x, signal.pos.y)
     }
 }
 
@@ -148,9 +147,9 @@ var target = makeTarget({ signal =>
     signal.kind == Signal.Adventurer && signal.name == "username2"
 })
 
-def showTile(tile : Tile, target : (Int, Int)) = (tile.x, tile.y) match {
-    case (x, y) if (x, y) == target => Markers.Target
-    case (x, y) if (x, y) == (me.x, me.y) => Markers.Me
+def showTile(tile : Tile, target : (Int, Int)) = tile.pos match {
+    case pos if pos == target => Markers.Target
+    case pos if pos == me.pos => Markers.Me
     case _ => legend.use[String](tile).head
 }
 
@@ -160,10 +159,10 @@ def showMap = {
 
     println(tiles.filter(aroundMe(25)).map(tile => {
         var s = showTile(tile, tgt)
-        if (tile.y != lastY) {
+        if (tile.pos.y != lastY) {
             s = "\n" + s
         }
-        lastY = tile.y
+        lastY = tile.pos.y
         s
     }).mkString)
 }

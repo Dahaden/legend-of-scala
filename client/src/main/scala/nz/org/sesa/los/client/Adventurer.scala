@@ -18,10 +18,10 @@ object Adventurer {
             "lake" -> "Lake",
             "river" -> "River",
             "marsh" -> "Marsh",
-            "ice" -> "Ice",
+            "ice" -> "Ice Field",
             "beach" -> "Beach",
-            "road1" -> "Road",
-            "road2" -> "Road",
+            "road1" -> "Road, Highway",
+            "road2" -> "Road, Main",
             "road3" -> "Road",
             "bridge" -> "Bridge",
             "lava" -> "Lava",
@@ -44,19 +44,19 @@ object Adventurer {
         private val FlavorText = Map(
             "ocean" -> "It's the ocean. I have no idea how you got here.",
             "coast" -> "Coast.",
-            "lakeshore" -> "You're on the shore of a calm lake.",
+            "lakeshore" -> "The waves of the lake gently caress the shoreline. The lake is dyed a deep blue.",
             "lake" -> "You're in a lake. You're probably drowning.",
             "river" -> "You're in a river. How did you get here?",
-            "marsh" -> 240,
-            "ice" -> 123,
-            "beach" -> 138,
-            "road1" -> 235,
-            "road2" -> 237,
-            "road3" -> 239,
+            "marsh" -> "The ground squelches beneath your feet as you walk around. You can see reeds and rushes dot the landscape, interspersed with low-growing shrubbery.",
+            "ice" -> "It's really chilly here. You can see",
+            "beach" -> "The ocean laps the sand; the tide ebbing in and out. Your footprints leave marks in the sand, only to be taken away by the waves.",
+            "road1" -> "You're standing on a wide open road. You can see it trail off into the distance in both directions.",
+            "road2" -> "You're standing on a wide open road. You can see it trail off into the distance in both directions.",
+            "road3" -> "You're standing on a wide open road. You can see it trail off into the distance in both directions.",
             "bridge" -> 241,
             "lava" -> "AAH AAH AAH YOU'RE STANDING IN LAVA",
-            "snow" -> 15,
-            "tundra" -> 249,
+            "snow" -> "Everything around you is a brilliant shade of white as you find yourself in a field of snow, glistening in the sunlight.",
+            "tundra" -> "The land is a rusty red, baring witness to the snowy peaks of the formidable mountains in the distance.",
             "bare" -> 102,
             "scorched" -> 240,
             "taiga" -> 108,
@@ -64,7 +64,7 @@ object Adventurer {
             "temperate-desert" -> 186,
             "temperate-rain-forest" -> 65,
             "temperate-deciduous-forest" -> 65,
-            "grassland" -> "You're on a wide open plain of grass.",
+            "grassland" -> "Green blades of grass fill the land endlessly as they shake gently in the wind.",
             "subtropical-desert" -> 180,
             "tropical-rain-forest" -> 65,
             "tropical-seasonal-forest" -> 65
@@ -74,15 +74,15 @@ object Adventurer {
     /**
      * A vision, obtained when using me.look.
      */
-    case class Vision(val x : Int, val y : Int, val terrain : String) {
+    case class Vision(val pos : Position, val terrain : String) {
         override def toString = s"""
-${Display.StartHilight}${Vision.FriendlyTerrainNane.get(terrain).head} (${x}, ${y})${Display.Reset}
+${Display.StartHilight}${Vision.FriendlyTerrainNane.get(terrain).head} (${pos.x}, ${pos.y})${Display.Reset}
 ${Vision.FlavorText.get(terrain).head}
 
 ${Display.StartHilight}Features of Interest${Display.Reset}
 Nothing here.
 
-${Display.StartHilight}Monster${Display.Reset}
+${Display.StartHilight}Monsters${Display.Reset}
 No monsters.
 
 ${Display.StartHilight}Other Adventurers${Display.Reset}
@@ -134,9 +134,8 @@ ${Display.fg(238)}
             case 200 => {
                 // we need to rename some things for case class extraction
                 js = js ++ (
-                    ("x_" -> js \ "x") ~
-                    ("y_" -> js \ "y") ~
                     ("level_" -> js \ "level") ~
+                    ("pos_" -> js \ "pos") ~
                     ("hp_" -> js \ "hp") ~
                     ("xp_" -> js \ "xp")
                 )
@@ -156,12 +155,11 @@ ${Display.fg(238)}
 
 case class Adventurer private(private val id : Int, val name : String,
                               private var level_ : Int,
-                              private var x_ : Int, private var y_ : Int,
+                              private var pos_ : Position,
                               private var hp_ : Int, private var xp_ : Int) {
-    def x : Int = x_
-    def y : Int = y_
-
     def level : Int = level_
+    def pos : Position = pos_
+
     def hp : Int = hp_
     def xp : Int = xp_
 
@@ -189,7 +187,7 @@ case class Adventurer private(private val id : Int, val name : String,
 
     def inventory = {
         if (!this.seenInventory) {
-            Display.show("""Apparently, you're wearing a backpack. There's some stuff in it.
+            println(s"""${Display.StartHilight}Apparently, you're wearing a backpack. There's some stuff in it.${Display.Reset}
 
  * You can retrieve things from it by number with `.inventory(i)`.
 
@@ -199,7 +197,8 @@ case class Adventurer private(private val id : Int, val name : String,
 
  * Sometimes using an item needs something else, like a word or another item. You can do `.use(other1, other2)`.
 
- * Other times, items will tell you things but only if you know how to use them. You can do `.use[Result]()` for these.""")
+ * Other times, items will tell you things but only if you know how to use them. You can do `.use[Result]()` for these.
+ """)
             this.seenInventory = true
         }
         val req = :/(Global.ServerAddress) / "adventurers" / name / "items"
@@ -239,8 +238,7 @@ case class Adventurer private(private val id : Int, val name : String,
                 false
             }
             case 200 => {
-                this.x_ = (js \ "x").extract[Int]
-                this.y_ = (js \ "y").extract[Int]
+                this.pos_ = js.extract[Position]
                 Display.show(s"You move ${direction.toLowerCase}wards.")
                 this.afterMove()
                 true
@@ -250,7 +248,7 @@ case class Adventurer private(private val id : Int, val name : String,
 
         override def toString = s"""
 ${Display.StartHilight}$name, the Level $level $title${Display.Reset}
-Currently at ($x, $y)
+Currently at ($pos.x, $pos.y)
 
 ${Display.Bold}${Display.fg(196)}HP:${Display.Reset} $hp/$maxHp
 ${Display.Bold}${Display.fg(226)}XP:${Display.Reset} $xp/$maxXp
