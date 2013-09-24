@@ -10,8 +10,6 @@ CREATE TABLE adventurers(
     xp INTEGER NOT NULL,
     level INTEGER NOT NULL,
 
-    fresh BOOLEAN NOT NULL,
-
     FOREIGN KEY(realm_id) REFERENCES realms(id)
 );
 
