@@ -69,12 +69,18 @@ object Adventurer {
             "tropical-rain-forest" -> 65,
             "tropical-seasonal-forest" -> 65
         )
+
+        case class RemoteFeatureHandle(id : Int, kind : String, attrs : json.JObject) {
+            def deserialize = throw new Exception
+        }
     }
 
     /**
      * A vision, obtained when using me.look.
      */
-    case class Vision(val pos : Position, val terrain : String) {
+    case class Vision(val pos : Position, val terrain : String, features_ : List[Vision.RemoteFeatureHandle]) {
+        val features = features_.map(_.deserialize)
+
         override def toString = s"""
 ${Display.StartHilight}${Vision.FriendlyTerrainNane.get(terrain).head} (${pos.x}, ${pos.y})${Display.Reset}
 ${Vision.FlavorText.get(terrain).head}
@@ -95,7 +101,15 @@ Nobody here.
      * Reference to a remote object. The adventurer should never be concerned with
      * this.
      */
-    private case class RemoteItemHandle(id : Int, kind : String, owner : String, attrs : json.JObject)
+    private case class RemoteItemHandle(id : Int, kind : String, owner : String, attrs : json.JObject) {
+        def deserialize(adventurer : Adventurer) = {
+            this.kind match {
+                case "map"          => new items.Map(this.id, this.attrs, adventurer)
+                case "map-legend"   => new items.MapLegend(this.id, this.attrs, adventurer)
+                case "beacon"       => new items.Beacon(this.id, this.attrs, adventurer)
+            }
+        }
+    }
 
     private def greet(name : String) {
         println(s"""
@@ -205,13 +219,8 @@ case class Adventurer private(private val id : Int, val name : String,
 
         implicit val formats = json.DefaultFormats
 
-        json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody()).extract[List[Adventurer.RemoteItemHandle]] map { h =>
-            h.kind match {
-                case "map"          => new items.Map(h.id, h.attrs, this)
-                case "map-legend"   => new items.MapLegend(h.id, h.attrs, this)
-                case "beacon"       => new items.Beacon(h.id, h.attrs, this)
-            }
-        }
+        json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody())
+            .extract[List[Adventurer.RemoteItemHandle]].map(_.deserialize(this))
     }
 
     def look = {
@@ -219,7 +228,12 @@ case class Adventurer private(private val id : Int, val name : String,
 
         implicit val formats = json.DefaultFormats
 
-        json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody()).extract[Adventurer.Vision]
+        var js = json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody())
+        js = js ++ (
+            ("features_" -> js \ "features")
+        )
+
+        js.extract[Adventurer.Vision]
     }
 
     def move(direction : String) = {
