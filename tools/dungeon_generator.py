@@ -13,7 +13,7 @@ MIN_FORKS = 5
 MAX_FORKS = 10
 
 MIN_STRAYING = 1
-MAX_STRAYING = 10
+MAX_STRAYING = 5
 
 def generate_dungeon(width, height):
     trunk = []
@@ -140,9 +140,45 @@ def draw_dungeon(dungeon, end, width, height):
             sys.stdout.write("\x1b[0m")
         print ""
 
+def expand_dungeon(dungeon, width, height):
+    expanded = [" "] * (width * 3 * height * 3)
 
-WIDTH = 50
-HEIGHT = 25
+    width3 = width * 3
+
+    for y in range(height):
+        for x in range(width):
+            x3 = x * 3
+            y3 = y * 3
+
+            v = dungeon[y * width + x]
+
+            if v & NORTH:
+                expanded[y3 * width3 + (x3 + 1)] = "#"
+
+            if v & SOUTH:
+                expanded[(y3 + 2) * width3 + (x3 + 1)] = "#"
+
+            if (v & NORTH and v & SOUTH and not (v & WEST) and not (v & EAST)) or \
+               (v & WEST and v & EAST and not (v & NORTH) and not (v & SOUTH)):
+                expanded[(y3 + 1) * width3 + (x3 + 1)] = "#"
+
+            if v & WEST:
+                expanded[(y3 + 1) * width3 + x3] = "#"
+
+            if v & EAST:
+                expanded[(y3 + 1) * width3 + (x3 + 2)] = "#"
+
+    return expanded
+
+WIDTH = 10
+HEIGHT = 10
 
 d, e = generate_dungeon(WIDTH, HEIGHT)
 draw_dungeon(d, e, WIDTH, HEIGHT)
+
+exd = expand_dungeon(d, WIDTH, HEIGHT)
+
+for y in range(HEIGHT * 3):
+    for x in range(WIDTH * 3):
+        sys.stdout.write(exd[y * WIDTH * 3 + x])
+    print ""
