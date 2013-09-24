@@ -178,7 +178,9 @@ ${Images.LogoSplash}
 case class Adventurer private(private val id : Int, val name : String,
                               private var level_ : Int,
                               private var pos_ : Position,
-                              private var hp_ : Int, private var xp_ : Int) {
+                              private var hp_ : Int,
+                              private var xp_ : Int,
+                              private var fresh) {
     def level : Int = level_
     def pos : Position = pos_
 

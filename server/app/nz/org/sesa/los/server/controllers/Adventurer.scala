@@ -35,7 +35,8 @@ object Adventurer extends Controller {
                     ("realm" -> row[String]("realm"))
                 ) ~
                 ("hp"   -> row[Int]("hp")) ~
-                ("xp"   -> row[Int]("xp"))
+                ("xp"   -> row[Int]("xp")) ~
+                ("fresh" -> row[Boolean]("fresh"))
             }))).as("application/json")
         }
     }

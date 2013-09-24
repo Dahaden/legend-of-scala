@@ -1,5 +1,7 @@
 package nz.org.sesa.los.server.models
 
+import scala.collection.mutable
+
 import anorm._
 import net.liftweb.json
 import play.api.Play.current
@@ -22,7 +24,7 @@ object Realm {
         }
     }
 
-    private val cache : Map[String, List[Tile]] = Map().withDefault(loadFromFile)
+    private val cache : mutable.Map[String, List[Tile]] = mutable.Map().withDefault(loadFromFile)
 
     case class Tile(val terrain : String, val features : List[String])
 
@@ -32,11 +34,13 @@ object Realm {
     }
 
     def loadTiles(name : String) = {
-        this.cache(name)
+        this.cache.getOrElseUpdate(name, {
+            loadFromFile(name)
+        })
     }
 
     def unloadTiles(name : String) = {
-        //this.cache -= name
+        this.cache -= name
     }
 }
 
