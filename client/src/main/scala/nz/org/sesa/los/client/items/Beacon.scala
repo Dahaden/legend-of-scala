@@ -13,7 +13,7 @@ import scala.concurrent.duration._
 
 object Beacon {
     case class Signal(val pos : Position, val name : String, val kind : String) {
-        override def toString = s"$kind $name at ($pos.x, $pos.y)"
+        override def toString = s"$kind $name at (${pos.x}, ${pos.y})"
     }
 
     object Signal {

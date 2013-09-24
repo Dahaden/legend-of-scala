@@ -45,7 +45,7 @@ trait Item {
         }
     }
 
-    def action[T : Manifest](args: Any*) : Option[T]
+    protected def action[T : Manifest](args: Any*) : Option[T]
 
     override def toString = {
         val imageLines = this.image.split("\n")

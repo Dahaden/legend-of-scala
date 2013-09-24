@@ -133,8 +133,8 @@ val beacon = retrieve("beacon")
 beacon.examine
 
 // Wow, what a lazy description. At least we know what it does now.
-beacon.use()
-beacon.use[List[Signal]]()
+beacon.use
+beacon.use[List[Signal]]
 
 // Let's try find another adventurer.
 def makeTarget(pred : Signal => Boolean) = () => {
@@ -148,12 +148,12 @@ var target = makeTarget({ signal =>
 })
 
 def showTile(tile : Tile, target : (Int, Int)) = tile.pos match {
-    case pos if pos == target => Markers.Target
+    case pos if (pos.x, pos.y) == target => Markers.Target
     case pos if pos == me.pos => Markers.Me
     case _ => legend.use[String](tile).head
 }
 
-def showMap = {
+def showMapWithTarget = {
     var lastY = 0
     var tgt = target()
 
@@ -169,7 +169,7 @@ def showMap = {
 
 // Use our new showMap function every time we move.
 me.afterMove = () => {
-    showMap
+    showMapWithTarget
     print(me.look)
 }
 
