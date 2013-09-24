@@ -50,84 +50,175 @@ object Realm {
         this.cache -= name
     }
 
-    def generateDungeon(name : String, w : Int, h : Int,
+    def generateDungeon(name : String, width : Int, height : Int,
                         minForks : Int = 5, maxForks : Int = 10,
                         minStray : Int = 1, maxStray : Int = 5) = {
-        val rand = new Random(System.currentTimeMillis());
+        val NORTH = 1
+        val SOUTH = 2
+        val WEST = 4
+        val EAST = 8
 
-        val n = w * h
+        val rand = new Random()
 
-        val sx = w / 2
-        val sy = h - 1
+        val wthird = width / 3
+        val hthird = height / 3
+
+        def generateDungeonMask(width : Int, height : Int) = {
+            var x = width / 2
+            var y = height - 1
+
+            var trunk : List[(Int, Int)] = List()
+
+            val n = width * height
+            val dungeonMask = Array.fill(n) {0}
+
+            dungeonMask(y * width + x) = SOUTH
+
+            val sidewayed : Array[Option[(Int, Int)]] = Array.fill(n) {None}
+            val backwarded = Array.fill(n) {false}
+
+            while (y > 0) {
+                trunk = (x, y) +: trunk
+
+                var opts = List((0, -1)) ::: (sidewayed(y) match {
+                    case None => List((1, 0), (-1, 0))
+                    case Some(v) => List(v)
+                }) filter { case (dx, dy) =>
+                    x + dx >= 0 && x + dx < width
+                }
+
+                val (dx, dy) = opts(rand.nextInt(opts.length))
+
+                val nx = x + dx
+                val ny = y + dy
+
+                if ((dx, dy) == (0, -1)) {
+                    dungeonMask(ny * width + nx)    |= SOUTH
+                    dungeonMask(y * width + x)      |= NORTH
+                }
+
+                if ((dx, dy) == (1, 0)) {
+                    dungeonMask(ny * width + nx)    |= WEST
+                    dungeonMask(y * width + x)      |= EAST
+                    sidewayed(y) = Some((1, 0))
+                }
+
+                if ((dx, dy) == (-1, 0)) {
+                    dungeonMask(ny * width + nx)    |= EAST
+                    dungeonMask(y * width + x)      |= WEST
+                    sidewayed(y) = Some((-1, 0))
+                }
+
+
+                x = nx
+                y = ny
+            }
+
+            var branchable = rand.shuffle(trunk.slice(0, trunk.length - 1).filter { case (x, y) =>
+                (dungeonMask(y * width + x) & NORTH) != 0
+            })
+
+            (minForks until Math.max(maxForks, branchable.length)) foreach { _ =>
+                var (x, y) = branchable.head
+                branchable = branchable.tail
+
+                breakable {
+                    (minStray until maxStray) foreach { _ =>
+                        val opts = List((0, -1), (1, 0), (-1, 0)).filter {case (dx, dy) =>
+                            x + dx >= 0 && x + dx < width &&
+                            y + dy >= 1 && y + dy < height - 1 &&
+                            dungeonMask((y + dy) * width + (x + dx)) == 0
+                        }
+
+                        if (opts.length == 0) break
+
+                        val (dx, dy) = opts(rand.nextInt(opts.length))
+
+                        val nx = x + dx
+                        val ny = y + dy
+
+                        if ((dx, dy) == (0, -1)) {
+                            dungeonMask(ny * width + nx)    |= SOUTH
+                            dungeonMask(y * width + x)      |= NORTH
+                        }
+
+                        if ((dx, dy) == (0, 1)) {
+                            dungeonMask(ny * width + nx)    |= NORTH
+                            dungeonMask(y * width + x)      |= SOUTH
+                        }
+
+                        if ((dx, dy) == (1, 0)) {
+                            dungeonMask(ny * width + nx)    |= WEST
+                            dungeonMask(y * width + x)      |= EAST
+                        }
+
+                        if ((dx, dy) == (-1, 0)) {
+                            dungeonMask(ny * width + nx)    |= EAST
+                            dungeonMask(y * width + x)      |= WEST
+                        }
+
+                        x = nx
+                        y = ny
+                    }
+                }
+            }
+
+            (dungeonMask, trunk)
+        }
+
+        val (dungeonMask, trunk) = generateDungeonMask(wthird, hthird)
+
+        val n = width * height
+
+        val (msx, msy) = trunk.last
+        val sx = msx * 3 + 1
+        val sy = msy * 3 + 2
+
+        val (mex, mey) = trunk.head
+        val ex = mex * 3 + 1
+        val ey = mey * 3
 
         val dungeon = Array.fill(n) {
             ("terrain" -> "impassable")
         }
 
-        // TODO: maybe entrance?
-        dungeon(sy * w + sx) = ("terrain" -> "cave")
+        (0 until hthird) foreach { j =>
+            (0 until wthird) foreach { i =>
+                val x = i * 3
+                val y = j * 3
 
-        // dig dungeon trunk
-        var branchable : List[(Int, Int)] = List()
+                val v = dungeonMask(j * wthird + i)
 
-        var x = sx
-        var y = sy
+                val n = (v & NORTH) != 0
+                val s = (v & SOUTH) != 0
+                val e = (v & EAST) != 0
+                val w = (v & WEST) != 0
 
-        val sidewayed : Array[Option[(Int, Int)]] = Array.fill(h) { None }
+                if (n) {
+                    dungeon(y * width + (x + 1)) = ("terrain" -> "cave")
+                }
 
-        while (y > 0) {
-            branchable = (x, y) +: branchable
+                if (s) {
+                    dungeon((y + 2) * width + (x + 1)) = ("terrain" -> "cave")
+                }
 
-            var opts = List((0, -1)) ::: (sidewayed(y) match {
-                case None => List((1, 0), (-1, 0))
-                case Some(v) => List(v)
-            }) filter { case (dx, dy) =>
-                x + dx >= 0 && x + dx < w
-            }
+                if (w) {
+                    dungeon((y + 1) * width + x) = ("terrain" -> "cave")
+                }
 
-            val (dx, dy) = opts(rand.nextInt(opts.length))
-            if (dy == 0) {
-                sidewayed(y) = Some((dx, dy))
-            }
+                if (e) {
+                    dungeon((y + 1) * width + (x + 2)) = ("terrain" -> "cave")
+                }
 
-            x = x + dx
-            y = y + dy
-
-            dungeon(y * w + x) = ("terrain" -> "cave")
-        }
-
-        var ex = x
-        var ey = y
-
-        // TODO: maybe throne room or something?
-        dungeon(ey * w + ex) = ("terrain" -> "cave")
-
-        // dig dungeon forks
-        branchable = rand.shuffle(branchable)
-
-        (minForks until Math.max(maxForks, branchable.length)) foreach { _ =>
-            var (x, y) = branchable.head
-            branchable = branchable.tail
-
-            breakable {
-                (minStray until maxStray) foreach { _ =>
-                    val opts = List((0, -1), (1, 0), (-1, 0)).filter {case (dx, dy) =>
-                        x + dx >= 0 && x + dx < w &&
-                        y + dy >= 1 && y + dy < h - 1 &&
-                        (dungeon((y + dy) * w + (x + dx)) \ "terrain") == "impassable"
-                    }
-
-                    if (opts.length == 0) break
-
-                    val (dx, dy) = opts(rand.nextInt(opts.length))
-
-                    x = x + dx
-                    y = y + dy
-
-                    dungeon(y * w + x) = ("terrain" -> "cave")
+                if ((n && s && !e && !w) || (!n && !s && e && w)) {
+                    dungeon((y + 1) * width + (x + 1)) = ("terrain" -> "cave")
                 }
             }
         }
+
+        // TODO: maybe entrance/central chamber?
+        dungeon(sy * width + sx) = ("terrain" -> "cave")
+        dungeon(ey * width + ex) = ("terrain" -> "cave")
 
         // write the dungeon to file
         Some(new PrintWriter(this.fileNameForRealm(name))) foreach {

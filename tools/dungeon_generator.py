@@ -16,22 +16,18 @@ MIN_STRAYING = 1
 MAX_STRAYING = 5
 
 def generate_dungeon(width, height):
-    trunk = []
-
     n = width * height
     dungeon = [0] * n
 
-    start = (width // 2, height - 1)
+    trunk = [(width // 2, height - 1)]
 
-    x, y = start
+    x, y = trunk[0]
     dungeon[y * width + x] = SOUTH
 
     sidewayed = [None] * n
     backwarded = [False] * n
 
-    while True:
-        trunk.append((x, y))
-
+    while y > 0:
         opts = [(0, -1)]
 
         if sidewayed[y] is None:
@@ -45,9 +41,6 @@ def generate_dungeon(width, height):
 
         dx, dy = random.choice(opts)
         nx, ny = x + dx, y + dy
-
-        if y == 0:
-            break
 
         if (dx, dy) == (0, -1):
             dungeon[ny * width + nx]    |= SOUTH
@@ -65,6 +58,7 @@ def generate_dungeon(width, height):
 
         x = nx
         y = ny
+        trunk.append((x, y))
 
     branchable = [(x, y) for (x, y) in trunk[:-1]
                   if dungeon[y * width + x] & NORTH != 0]
@@ -152,20 +146,20 @@ def expand_dungeon(dungeon, width, height):
 
             v = dungeon[y * width + x]
 
-            if v & NORTH:
+            if v & NORTH != 0:
                 expanded[y3 * width3 + (x3 + 1)] = "#"
 
-            if v & SOUTH:
+            if v & SOUTH != 0:
                 expanded[(y3 + 2) * width3 + (x3 + 1)] = "#"
 
-            if (v & NORTH and v & SOUTH and not (v & WEST) and not (v & EAST)) or \
-               (v & WEST and v & EAST and not (v & NORTH) and not (v & SOUTH)):
+            if (v & NORTH != 0 and v & SOUTH != 0 and v & WEST == 0 and v & EAST == 0) or \
+               (v & WEST != 0 and v & EAST != 0 and v & NORTH == 0 and v & SOUTH == 0):
                 expanded[(y3 + 1) * width3 + (x3 + 1)] = "#"
 
-            if v & WEST:
+            if v & WEST != 0:
                 expanded[(y3 + 1) * width3 + x3] = "#"
 
-            if v & EAST:
+            if v & EAST != 0:
                 expanded[(y3 + 1) * width3 + (x3 + 2)] = "#"
 
     return expanded

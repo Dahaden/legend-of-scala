@@ -94,7 +94,7 @@ object Adventurer {
         override def toString = {
             val directions = exits.zip(Vision.Directions)
                 .filter({case (canExit, _) => canExit})
-                .map({case (_, dir) => dir})
+                .map({case (_, dir) => s"${Display.fg(34)}$dir${Display.Reset}"})
 
             val possibleExists = directions.length match {
                 case 0 => "You're trapped!"
