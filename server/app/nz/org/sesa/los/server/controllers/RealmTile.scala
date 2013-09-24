@@ -34,6 +34,53 @@ object RealmTile extends Controller {
         }
     }
 
+    private def getMonsters(realmName : String, x : Int, y : Int) = {
+        DB.withConnection { implicit c =>
+            val rows = SQL("""SELECT monsters.id AS id,
+                                     monsters.kind AS kind,
+                                     monsters.level AS level,
+                                     monsters.drops AS drops,
+                                     monsters.x AS x,
+                                     monsters.y as y,
+                                     realms.name AS realm
+                              FROM monsters, realms
+                              WHERE monsters.realm_id = realms.id AND
+                                    realms.name = {name} AND
+                                    monsters.x = {x} AND
+                                    monsters.y = {y}""").on(
+                "name" -> realmName,
+                "x" -> x,
+                "y" -> y
+            )
+
+            rows().toList
+        }
+    }
+
+    private def getAdventurers(realmName : String, x : Int, y : Int) = {
+        DB.withConnection { implicit c =>
+            val rows = SQL("""SELECT adventurers.id AS id,
+                                     adventurers.name AS name,
+                                     adventurers.level AS level,
+                                     adventurers.x AS x,
+                                     adventurers.y AS y,
+                                     realms.name AS realm,
+                                     adventurers.hp AS hp,
+                                     adventurers.xp AS xp
+                              FROM adventurers, realms
+                              WHERE adventurers.realm_id = realms.id AND
+                                    realms.name = {name} AND
+                                    adventurers.x = {x} AND
+                                    adventurers.y = {y}""").on(
+                "name" -> realmName,
+                "x" -> x,
+                "y" -> y
+           )
+
+            rows().toList
+        }
+    }
+
     def view(realmName : String, x : Int, y : Int, adventurerName : Option[String]) = Action { request =>
         models.Realm.getRow(realmName) match {
             case None => {
@@ -83,6 +130,15 @@ object RealmTile extends Controller {
                         ("id" -> row[Int]("id")) ~
                         ("kind" -> row[String]("kind")) ~
                         ("attrs" -> json.parse(row[Option[String]]("attrs").getOrElse("null")))
+                    })) ~
+                    ("monsters" -> getMonsters(realmName, x, y).map({ row =>
+                        ("id" -> row[Int]("id")) ~
+                        ("kind" -> row[String]("kind")) ~
+                        ("level" -> row[Int]("level")) ~
+                        ("drops" -> json.parse(row[String]("drops")))
+                    })) ~
+                    ("adventurers" -> getAdventurers(realmName, x, y).map({ row =>
+                        row[String]("name")
                     })) ~
                     ("pos" ->
                         ("x" -> x) ~

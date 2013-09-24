@@ -176,7 +176,7 @@ object Realm {
 
         val (mex, mey) = trunk.head
         val ex = mex * 3 + 1
-        val ey = mey * 3
+        val ey = mey * 3 - 1
 
         val dungeon = Array.fill(n) {
             ("terrain" -> "impassable")

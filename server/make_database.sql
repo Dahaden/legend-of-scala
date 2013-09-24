@@ -42,4 +42,18 @@ CREATE TABLE features(
     FOREIGN KEY(realm_id) REFERENCES realms(id)
 );
 
+CREATE TABLE monsters(
+    id INTEGER PRIMARY KEY NOT NULL,
+
+    x INTEGER NOT NULL,
+    y INTEGER NOT NULL,
+    realm_id INTEGER NOT NULL,
+
+    kind VARCHAR(255),
+    level INTEGER NOT NULL,
+    drops TEXT NOT NULL,
+
+    FOREIGN KEY(realm_id) REFERENCES realms(id)
+);
+
 INSERT INTO realms(name, w, h) VALUES("world", 150, 150);

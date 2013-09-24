@@ -48,8 +48,8 @@ object Adventurer extends Controller {
         val name = (js \ "name").extract[String]
 
         DB.withTransaction { implicit c =>
-            val w = 50
-            val h = 20
+            val w = 10
+            val h = 10
 
             val dungeonId = SQL("""INSERT INTO realms(name, w, h)
                                    VALUES("tutorial dungeon for " || {name}, {w}, {h})""").on(
@@ -60,18 +60,39 @@ object Adventurer extends Controller {
 
             val ((dsx, dsy), (dex, dey)) = models.Realm.generateDungeon("tutorial dungeon for " + name, w, h, 0, 0, 0, 0)
 
-            // make chest
+            // make chest at start of dungeon
             SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
                    VALUES ("chest", {attrs}, {x}, {y}, {dungeonId})""").on(
                 "attrs" -> json.pretty(json.render(
-                    ("items" -> List("map", "map-legend", "beacon"))
+                    ("items" -> List(
+                        (
+                            ("name" -> "weapon") ~
+                            ("attrs" -> (
+                                ("material" -> "wood") ~
+                                ("type" -> "sword")
+                            ))
+                        )
+                    ))
                 )),
+                "x" -> dsx,
+                "y" -> dsy,
+                "dungeonId" -> dungeonId
+            ).execute()
+
+            // make boss at end of dungeon
+            SQL("""INSERT INTO monsters(kind, level, drops, x, y, realm_id)
+                   VALUES ("ogre", 1, {drops}, {x}, {y}, {dungeonId})""").on(
+                "drops" -> json.pretty(json.render(List(
+                    ("name" -> "map"),
+                    ("name" -> "map-legend"),
+                    ("name" -> "beacon")
+                ))),
                 "x" -> dex,
                 "y" -> dey,
                 "dungeonId" -> dungeonId
             ).execute()
 
-            // make portal
+            // make portal at end of dungeon
             val locs = models.Realm.loadTiles("world").zipWithIndex.filter { case (t, _) =>
                 t.terrain == "road1" || t.terrain == "road2" || t.terrain == "road3"
             }.map { case (_, i) =>
