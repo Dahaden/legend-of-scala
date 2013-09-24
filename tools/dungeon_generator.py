@@ -9,14 +9,20 @@ SOUTH = 2
 WEST = 4
 EAST = 8
 
+MIN_FORKS = 5
+MAX_FORKS = 10
+
+MIN_STRAYING = 1
+MAX_STRAYING = 10
+
 def generate_dungeon(width, height):
     trunk = []
 
     n = width * height
     dungeon = [0] * n
 
-    start = (width / 2, height - 1)
-    q = [(width / 2, height - 1)]
+    start = (width // 2, height - 1)
+    q = [start]
 
     x, y = start
     dungeon[y * width + x] = SOUTH
@@ -61,15 +67,17 @@ def generate_dungeon(width, height):
 
         q.append((x + dx, y + dy))
 
-    branchable = [(x, y) for (x, y) in trunk
+    branchable = [(x, y) for (x, y) in trunk[:-1]
                   if dungeon[y * width + x] & NORTH != 0]
 
     random.shuffle(branchable)
 
-    for _ in range(random.randint(5, 10)):
+    for _ in range(random.randint(MIN_FORKS, MAX_FORKS)):
+        if not branchable: break
+
         q = [branchable.pop()]
 
-        for _ in range(random.randint(1, 5)):
+        for _ in range(random.randint(MIN_STRAYING, MAX_STRAYING)):
             x, y = q.pop()
 
             opts = [(dx, dy)
@@ -102,12 +110,16 @@ def generate_dungeon(width, height):
 
             q.append((nx, ny))
 
-    return dungeon
+    return dungeon, trunk[-1]
 
 
-def draw_dungeon(dungeon, width, height):
+def draw_dungeon(dungeon, end, width, height):
     for y in range(height):
         for x in range(width):
+            if (x, y) == (width // 2, height - 1):
+                sys.stdout.write("\x1b[38;5;46m")
+            elif (x, y) == end:
+                sys.stdout.write("\x1b[38;5;196m")
             i = y * width + x
             sys.stdout.write({
                 0: " ",
@@ -126,11 +138,13 @@ def draw_dungeon(dungeon, width, height):
                 NORTH | WEST | EAST: "┴",
                 SOUTH | WEST | EAST: "┬",
                 NORTH | SOUTH | EAST | WEST: "┼"
-            }[dungeon[i]]),
+            }[dungeon[i]])
+            sys.stdout.write("\x1b[0m")
         print ""
 
 
 WIDTH = 50
 HEIGHT = 25
 
-draw_dungeon(generate_dungeon(WIDTH, HEIGHT), WIDTH, HEIGHT)
+d, e = generate_dungeon(WIDTH, HEIGHT)
+draw_dungeon(d, e, WIDTH, HEIGHT)
