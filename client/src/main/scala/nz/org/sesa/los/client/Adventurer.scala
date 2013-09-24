@@ -71,7 +71,11 @@ object Adventurer {
         )
 
         case class RemoteFeatureHandle(id : Int, kind : String, attrs : json.JObject) {
-            def deserialize = throw new Exception
+            def deserialize = {
+                kind match {
+                    case _          => throw new Exception()
+                }
+            }
         }
     }
 
@@ -103,10 +107,10 @@ Nobody here.
      */
     private case class RemoteItemHandle(id : Int, kind : String, owner : String, attrs : json.JObject) {
         def deserialize(adventurer : Adventurer) = {
-            this.kind match {
-                case "map"          => new items.Map(this.id, this.attrs, adventurer)
-                case "map-legend"   => new items.MapLegend(this.id, this.attrs, adventurer)
-                case "beacon"       => new items.Beacon(this.id, this.attrs, adventurer)
+            kind match {
+                case "map"          => new items.Map(id, attrs, adventurer)
+                case "map-legend"   => new items.MapLegend(id, attrs, adventurer)
+                case "beacon"       => new items.Beacon(id, attrs, adventurer)
             }
         }
     }
