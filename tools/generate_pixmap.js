@@ -14,7 +14,7 @@ function make_escape(c) {
 }
 
 png.decode(function (pixels) {
-    var buf = "";
+    var buf = [];
     for (var y = 0; y < png.height; ++y) {
         var line = "";
         for (var x = 0; x < png.width; ++x) {
@@ -36,7 +36,7 @@ png.decode(function (pixels) {
                 line += make_escape(antsy.get_color(c)) + "  " + "\x1b[0m";
             }
         }
-        buf += line + "\n";
+        buf.push(line);
     }
-    console.log(buf);
+    console.log(buf.join("\n"));
 });

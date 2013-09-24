@@ -35,7 +35,8 @@ SUFFIXES = [
     "warrior",
     "soldier",
     "vizier",
-    "priest"
+    "priest",
+    "ninja"
 ]
 
 TRANSFORMS = [
