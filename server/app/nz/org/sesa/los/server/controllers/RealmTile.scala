@@ -12,21 +12,6 @@ import net.liftweb.json.Extraction._
 import nz.org.sesa.los.server.models
 
 object RealmTile extends Controller {
-    private def getRow(realmName : String) = {
-        DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT id, name, w, h
-                              FROM realms
-                              WHERE name = {name}""").on(
-                "name" -> realmName
-            )
-
-            rows().toList match {
-                case Nil => None
-                case row::_ => Some(row)
-            }
-        }
-    }
-
     private def getFeatures(realmName : String, x : Int, y : Int) = {
         DB.withConnection { implicit c =>
             val rows = SQL("""SELECT features.id AS id,
@@ -49,8 +34,8 @@ object RealmTile extends Controller {
         }
     }
 
-    def view(realmName : String, x : Int, y : Int) = Action { request =>
-        this.getRow(realmName) match {
+    def view(realmName : String, x : Int, y : Int, adventurerName : Option[String]) = Action { request =>
+        models.Realm.getRow(realmName) match {
             case None => {
                 NotFound(json.pretty(json.render(
                     ("why" -> s"No such realm.")
@@ -58,7 +43,29 @@ object RealmTile extends Controller {
             }
 
             case Some(row) => {
-                val i = y * row[Int]("w") + x
+                val w = row[Int]("w")
+                val h = row[Int]("h")
+
+                val pred = adventurerName.fold { _ : models.Realm.Tile => true } { adventurerName =>
+                    models.Adventurer.getRow(adventurerName).fold { _ : models.Realm.Tile => false } { row =>
+                        models.Adventurer.canMoveTo(row, _)
+                    }
+                }
+
+                val exits = List((0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, 1)).map { case (dx, dy) =>
+                    val nx = x + dx
+                    val ny = y + dy
+
+                    val ni = ny * w + nx
+
+                    if (nx < 0 || nx >= w || ny < 0 || ny >= h) {
+                        false
+                    } else {
+                        pred(models.Realm.loadTiles(realmName)(ni))
+                    }
+                }
+
+                val i = y * w + x
                 val tile = models.Realm.loadTiles(realmName)(i)
 
                 Ok(json.pretty(json.render(
@@ -72,7 +79,8 @@ object RealmTile extends Controller {
                         ("x" -> x) ~
                         ("y" -> y) ~
                         ("realm" -> realmName)
-                    )
+                    ) ~
+                    ("exits" -> exits)
                 ))).as("application/json")
             }
         }

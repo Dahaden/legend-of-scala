@@ -77,17 +77,32 @@ object Adventurer {
                 }
             }
         }
+
+        val Directions = List("north", "northeast", "east", "southeast", "south", "southwest", "west", "northwest")
     }
 
     /**
      * A vision, obtained when using me.look.
      */
-    case class Vision(val pos : Position, val terrain : String, features_ : List[Vision.RemoteFeatureHandle]) {
+    case class Vision(val pos : Position, val terrain : String, val exits : List[Boolean], val features_ : List[Vision.RemoteFeatureHandle]) {
         val features = features_.map(_.deserialize)
 
-        override def toString = s"""
+        override def toString = {
+            val directions = exits.zip(Vision.Directions)
+                .filter({case (canExit, _) => canExit})
+                .map({case (_, dir) => dir})
+
+            val possibleExists = directions.length match {
+                case 0 => "You're trapped!"
+                case 1 => s"You can only move ${directions(0)} from here."
+                case _ => s"You can move ${directions.init.mkString(", ")} or ${directions.last} from here."
+            }
+
+            s"""
 ${Display.StartHilight}${Vision.FriendlyTerrainNane.get(terrain).head} (${pos.x}, ${pos.y})${Display.Reset}
 ${Vision.FlavorText.get(terrain).head}
+
+$possibleExists
 
 ${Display.StartHilight}Features of Interest${Display.Reset}
 Nothing here.
@@ -99,6 +114,7 @@ ${Display.StartHilight}Other Adventurers${Display.Reset}
 Nobody here.
 
 """
+        }
     }
 
     /**
@@ -216,7 +232,7 @@ case class Adventurer private(private val id : Int, val name : String,
     }
 
     def look = {
-        val req = :/(Global.ServerAddress) / "realms" / pos.realm / (pos.x.toString + "," + pos.y.toString)
+        val req = :/(Global.ServerAddress) / "realms" / pos.realm / (pos.x.toString + "," + pos.y.toString) <<? Map("adventurerName" -> name)
 
         implicit val formats = json.DefaultFormats
 

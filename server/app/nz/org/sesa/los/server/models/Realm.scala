@@ -1,8 +1,27 @@
 package nz.org.sesa.los.server.models
 
+import anorm._
 import net.liftweb.json
+import play.api.Play.current
+import play.api._
+import play.api.db._
 
 object Realm {
+    def getRow(realmName : String) = {
+        DB.withConnection { implicit c =>
+            val rows = SQL("""SELECT id, name, w, h
+                              FROM realms
+                              WHERE name = {name}""").on(
+                "name" -> realmName
+            )
+
+            rows().toList match {
+                case Nil => None
+                case row::_ => Some(row)
+            }
+        }
+    }
+
     private val cache : Map[String, List[Tile]] = Map().withDefault(loadFromFile)
 
     case class Tile(val terrain : String, val features : List[String])

@@ -12,31 +12,6 @@ import net.liftweb.json.JsonDSL._
 import scala.util.Random
 
 object Adventurer extends Controller {
-    private def getRow(adventurerName : String) = {
-        DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT adventurers.id AS id,
-                                     adventurers.name AS name,
-                                     adventurers.level AS level,
-                                     adventurers.x AS x,
-                                     adventurers.y AS y,
-                                     realms.name AS realm,
-                                     realms.w AS w,
-                                     realms.h AS h,
-                                     adventurers.hp AS hp,
-                                     adventurers.xp AS xp
-                              FROM adventurers, realms
-                              WHERE adventurers.realm_id = realms.id AND
-                                    adventurers.name = {name}""").on(
-                "name" -> adventurerName
-            )
-
-            rows().toList match {
-                case Nil => None
-                case row::_ => Some(row)
-            }
-        }
-    }
-
     def index() = Action { request =>
         DB.withConnection { implicit c =>
             val rows = SQL("""SELECT adventurers.id AS id,
@@ -108,7 +83,7 @@ object Adventurer extends Controller {
     }
 
     def view(adventurerName : String) = Action { request =>
-        this.getRow(adventurerName) match {
+        models.Adventurer.getRow(adventurerName) match {
             case None => {
                 NotFound(json.pretty(json.render(
                     ("why" -> s"Sorry, but you, $adventurerName, are not an adventurer.")
@@ -132,7 +107,7 @@ object Adventurer extends Controller {
     }
 
     def move(adventurerName : String) = Action(parse.tolerantText) { request =>
-        this.getRow(adventurerName) match {
+        models.Adventurer.getRow(adventurerName) match {
             case None => {
                 NotFound(json.pretty(json.render(
                     ("why" -> s"Sorry, but you, $adventurerName, are not an adventurer.")
@@ -165,28 +140,26 @@ object Adventurer extends Controller {
                         val i = y * w + x
                         val tile = models.Realm.loadTiles(realm)(i)
 
-                        tile.terrain match {
-                            case "ocean" | "lake" | "river" =>
-                                BadRequest(json.pretty(json.render(
-                                    ("why" -> "You try to flap your wings like a bird to fly over the water, but fail miserably.")
-                                ))).as("application/json")
-                            case _ => {
-                                val rows = DB.withConnection { implicit c =>
-                                    SQL("""UPDATE adventurers
-                                           SET x = {x}, y = {y}
-                                           WHERE name = {name}""").on(
-                                        "name" -> adventurerName,
-                                        "x" -> x,
-                                        "y" -> y
-                                    ).execute()
-                                }
-
-                                Ok(json.pretty(json.render(
-                                    ("x" -> x) ~
-                                    ("y" -> y) ~
-                                    ("realm" -> realm)
-                                ))).as("application/json")
+                        if (!models.Adventurer.canMoveTo(row, tile)) {
+                            BadRequest(json.pretty(json.render(
+                                ("why" -> "You try to flap your wings like a bird to fly over the water, but fail miserably.")
+                            ))).as("application/json")
+                        } else {
+                            val rows = DB.withConnection { implicit c =>
+                                SQL("""UPDATE adventurers
+                                       SET x = {x}, y = {y}
+                                       WHERE name = {name}""").on(
+                                    "name" -> adventurerName,
+                                    "x" -> x,
+                                    "y" -> y
+                                ).execute()
                             }
+
+                            Ok(json.pretty(json.render(
+                                ("x" -> x) ~
+                                ("y" -> y) ~
+                                ("realm" -> realm)
+                            ))).as("application/json")
                         }
                     }
 
