@@ -16,7 +16,7 @@ object RealmTile extends Controller {
         DB.withConnection { implicit c =>
             val rows = SQL("""SELECT features.id AS id,
                                      features.kind AS kind,
-                                     features.attrs AS attr,
+                                     features.attrs AS attrs,
                                      features.x AS x,
                                      features.y as y,
                                      realms.name AS realm

@@ -49,7 +49,7 @@ object Adventurer extends Controller {
 
         DB.withTransaction { implicit c =>
             val w = 50
-            val h = 50
+            val h = 20
 
             val dungeonId = SQL("""INSERT INTO realms(name, w, h)
                                    VALUES("tutorial dungeon for " || {name}, {w}, {h})""").on(
