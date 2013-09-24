@@ -77,7 +77,7 @@ object Adventurer {
         case class RemoteFeatureHandle(id : Int, kind : String, attrs : json.JObject) {
             def deserialize = {
                 kind match {
-                    case _          => throw new Exception()
+                    case _          => null
                 }
             }
         }
@@ -140,11 +140,11 @@ Nobody here.
 ${Display.StartHilight}Hello, Adventurer $name, and welcome to...${Display.Reset}
 
 ${Images.LogoSplash}
- * Why don't you start off by `.look`ing around?
+ * Why don't you start off by ${Display.fg(34)}.look${Display.Reset}ing around?
 
- * Or maybe checking your `.inventory`?
+ * Or maybe checking your ${Display.fg(34)}.inventory${Display.Reset}?
 
- * If you're really adventurous, you can start `.move`ing around to the "north", "south", "east" and "west".
+ * If you're really adventurous, you can start ${Display.fg(34)}.move${Display.Reset}ing around in a cardinal direction, like ${Display.fg(34)}north${Display.Reset}.
 """)
     }
 
@@ -216,15 +216,15 @@ case class Adventurer private(private val id : Int, val name : String,
         if (!this.seenInventory) {
             println(s"""${Display.StartHilight}Apparently, you're wearing a backpack. There's some stuff in it.${Display.Reset}
 
- * You can retrieve things from it by number with `.inventory(i)`.
+ * You can retrieve things from it by number with ${Display.fg(34)}.inventory(i)${Display.Reset}.
 
- * You can examine them with `.examine`.
+ * You can examine them with ${Display.fg(34)}.examine${Display.Reset}.
 
- * Once you've taken something from it, you can use it with `.use()`.
+ * Once you've taken something from it, you can use it with ${Display.fg(34)}.use()${Display.Reset}.
 
- * Sometimes using an item needs something else, like a word or another item. You can do `.use(other1, other2)`.
+ * Sometimes using an item needs something else, like a word or another item. You can do ${Display.fg(34)}.use(other1, other2)${Display.Reset}.
 
- * Other times, items will tell you things but only if you know how to use them. You can do `.use[Result]()` for these.
+ * Other times, items will tell you things but only if you know how to use them. You can do ${Display.fg(34)}.use[Result]()${Display.Reset} for these.
  """)
             this.seenInventory = true
         }

@@ -33,7 +33,7 @@ object Adventurer {
 
     def canMoveTo(adventurerRow : Row, tile : Realm.Tile) = {
         tile.terrain match {
-            case "river" | "lake" | "ocean" | "impassable" => false
+            case "river" | "lake" | "ocean" | "lava" | "impassable" => false
             case _ => true
         }
     }

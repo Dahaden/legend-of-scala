@@ -175,6 +175,7 @@ object Adventurer extends Controller {
                                 ("why" -> (tile.terrain match {
                                     case "impassable" => "You walk into the wall and, to nobody's surprise, it hurts."
                                     case "river" | "ocean" | "lake" => "You try to flap your wings like a bird to fly over the water, but fail miserably."
+                                    case "lava" => "Um, you know that's lava, right?"
                                 }))
                             ))).as("application/json")
                         } else {
