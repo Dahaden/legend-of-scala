@@ -275,8 +275,6 @@ case class Adventurer private(private val id : Int, val name : String,
 
         override def toString = s"""
 ${Display.StartHilight}$name, the Level $level $title${Display.Reset}
-Currently at (${pos.x}, ${pos.y})
-
 ${Display.Bold}${Display.fg(196)}HP:${Display.Reset} $hp/$maxHp
 ${Display.Bold}${Display.fg(226)}XP:${Display.Reset} $xp/$maxXp
 """
