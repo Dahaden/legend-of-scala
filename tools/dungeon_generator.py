@@ -4,35 +4,25 @@
 import random
 import sys
 
-NORTH = 1
-SOUTH = 2
-WEST = 4
-EAST = 8
-
 MIN_FORKS = 5
 MAX_FORKS = 10
 
 MIN_STRAYING = 1
-MAX_STRAYING = 10
+MAX_STRAYING = 5
 
 def generate_dungeon(width, height):
-    trunk = []
+    branchable = []
 
     n = width * height
-    dungeon = [0] * n
+    dungeon = [False] * n
 
-    start = (width // 2, height - 1)
-    q = [start]
+    x, y = (width // 2, height - 1)
+    dungeon[y * width + x] = True
 
-    x, y = start
-    dungeon[y * width + x] = SOUTH
+    sidewayed = [None] * height
 
-    sidewayed = [None] * n
-    backwarded = [False] * n
-
-    while q:
-        x, y = q.pop()
-        trunk.append((x, y))
+    while y != 0:
+        branchable.append((x, y))
 
         opts = [(0, -1)]
 
@@ -46,71 +36,39 @@ def generate_dungeon(width, height):
                 if 0 <= x + dx < width]
 
         dx, dy = random.choice(opts)
-        nx, ny = x + dx, y + dy
+        if dy == 0:
+            sidewayed[y] = (dx, dy)
 
-        if y == 0:
-            break
+        x += dx
+        y += dy
 
-        if (dx, dy) == (0, -1):
-            dungeon[ny * width + nx]    |= SOUTH
-            dungeon[y * width + x]      |= NORTH
+        dungeon[y * width + x] = True
 
-        if (dx, dy) == (1, 0):
-            dungeon[ny * width + nx]    |= WEST
-            dungeon[y * width + x]      |= EAST
-            sidewayed[y] = (1, 0)
-
-        if (dx, dy) == (-1, 0):
-            dungeon[ny * width + nx]    |= EAST
-            dungeon[y * width + x]      |= WEST
-            sidewayed[y] = (-1, 0)
-
-        q.append((x + dx, y + dy))
-
-    branchable = [(x, y) for (x, y) in trunk[:-1]
-                  if dungeon[y * width + x] & NORTH != 0]
+    ex, ey = x, y
 
     random.shuffle(branchable)
 
     for _ in range(random.randint(MIN_FORKS, MAX_FORKS)):
         if not branchable: break
 
-        q = [branchable.pop()]
+        x, y = branchable.pop()
 
         for _ in range(random.randint(MIN_STRAYING, MAX_STRAYING)):
-            x, y = q.pop()
-
             opts = [(dx, dy)
                     for (dx, dy) in [(0, -1), (1, 0), (-1, 0)]
                     if 0 <= x + dx < width and
-                       0 <= y + dy < height and
+                       1 <= y + dy < height - 1 and
                        dungeon[(y + dy) * width + (x + dx)] == 0]
 
             if not opts:
                 break
 
             dx, dy = random.choice(opts)
-            nx, ny = x + dx, y + dy
+            x, y = x + dx, y + dy
 
-            if (dx, dy) == (0, -1):
-                dungeon[ny * width + nx]    |= SOUTH
-                dungeon[y * width + x]      |= NORTH
+            dungeon[y * width + x] = True
 
-            if (dx, dy) == (0, 1):
-                dungeon[ny * width + nx]    |= NORTH
-                dungeon[y * width + x]      |= SOUTH
-
-            if (dx, dy) == (1, 0):
-                dungeon[ny * width + nx]    |= WEST
-                dungeon[y * width + x]      |= EAST
-
-            if (dx, dy) == (-1, 0):
-                dungeon[ny * width + nx]    |= EAST
-                dungeon[y * width + x]      |= WEST
-
-            q.append((nx, ny))
-
-    return dungeon, trunk[-1]
+    return dungeon, (ex, ey)
 
 
 def draw_dungeon(dungeon, end, width, height):
@@ -121,24 +79,10 @@ def draw_dungeon(dungeon, end, width, height):
             elif (x, y) == end:
                 sys.stdout.write("\x1b[38;5;196m")
             i = y * width + x
-            sys.stdout.write({
-                0: " ",
-                NORTH: "╵",
-                SOUTH: "╷",
-                WEST: "╴",
-                EAST: "╶",
-                NORTH | SOUTH: "│",
-                WEST | EAST: "─",
-                NORTH | EAST: "└",
-                NORTH | WEST: "┘",
-                SOUTH | EAST: "┌",
-                SOUTH | WEST: "┐",
-                NORTH | SOUTH | EAST: "├",
-                NORTH | SOUTH | WEST: "┤",
-                NORTH | WEST | EAST: "┴",
-                SOUTH | WEST | EAST: "┬",
-                NORTH | SOUTH | EAST | WEST: "┼"
-            }[dungeon[i]])
+            if dungeon[i]:
+                sys.stdout.write("#")
+            else:
+                sys.stdout.write(" ")
             sys.stdout.write("\x1b[0m")
         print ""
 

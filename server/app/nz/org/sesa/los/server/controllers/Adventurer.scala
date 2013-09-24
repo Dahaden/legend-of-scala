@@ -47,34 +47,64 @@ object Adventurer extends Controller {
 
         val name = (js \ "name").extract[String]
 
-        val locs = models.Realm.loadTiles("world").zipWithIndex.filter { case (t, _) =>
-            t.terrain == "road1" || t.terrain == "road2" || t.terrain == "road3"
-        }.map { case (_, i) =>
-            // TODO: DON'T HARDCODE THIS!
-            (i % 150, i / 150)
-        }
+        DB.withTransaction { implicit c =>
+            val w = 50
+            val h = 50
 
-        val rand = new Random(System.currentTimeMillis());
-        val (x, y) = locs(rand.nextInt(locs.length))
-
-        // LOL WHAT ARE TRANSACTIONS
-        DB.withConnection { implicit c =>
-            val id = SQL("""INSERT INTO adventurers(name, level, x, y, realm_id, hp, xp)
-                            SELECT {name}, 1, {x}, {y}, id, 100, 0 FROM realms
-                            WHERE name = "world"
-                         """).on(
+            val dungeonId = SQL("""INSERT INTO realms(name, w, h)
+                                   VALUES("tutorial dungeon for " || {name}, {w}, {h})""").on(
                 "name" -> name,
-                "x" -> x,
-                "y" -> y
+                "w" -> w,
+                "h" -> h
             ).executeInsert().get
 
-            List("map", "map-legend", "beacon").foreach { kind =>
-                SQL("""INSERT into items(kind, owner_id)
-                     VALUES ({kind}, {id})""").on(
-                    "kind" -> kind,
-                    "id" -> id
-                ).execute()
+            val ((dsx, dsy), (dex, dey)) = models.Realm.generateDungeon("tutorial dungeon for " + name, w, h)
+
+            // make chest
+            SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
+                   VALUES ("chest", {attrs}, {x}, {y}, {dungeonId})""").on(
+                "attrs" -> json.pretty(json.render(
+                    ("items" -> List("map", "map-legend", "beacon"))
+                )),
+                "x" -> dex,
+                "y" -> dey,
+                "dungeonId" -> dungeonId
+            ).execute()
+
+            // make portal
+            val locs = models.Realm.loadTiles("world").zipWithIndex.filter { case (t, _) =>
+                t.terrain == "road1" || t.terrain == "road2" || t.terrain == "road3"
+            }.map { case (_, i) =>
+                // TODO: DON'T HARDCODE THIS!
+                (i % 150, i / 150)
             }
+
+            val rand = new Random(System.currentTimeMillis());
+            val (x, y) = locs(rand.nextInt(locs.length))
+
+            SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
+                   VALUES ("portal", {attrs}, {x}, {y}, {dungeonId})""").on(
+                "attrs" -> json.pretty(json.render(
+                    ("target" -> (
+                        ("realm" -> "world") ~
+                        ("x" -> x) ~
+                        ("y" -> y)
+                    ))
+                )),
+                "x" -> dex,
+                "y" -> dey,
+                "dungeonId" -> dungeonId
+            ).execute()
+
+            // make adventurer
+            val id = SQL("""INSERT INTO adventurers(name, level, x, y, realm_id, hp, xp)
+                            VALUES ({name}, 1, {x}, {y}, {dungeonId}, 100, 0)
+                         """).on(
+                "name" -> name,
+                "x" -> dsx,
+                "y" -> dsy,
+                "dungeonId" -> dungeonId
+            ).execute()
         }
 
         Ok(json.pretty(json.render(
@@ -142,7 +172,10 @@ object Adventurer extends Controller {
 
                         if (!models.Adventurer.canMoveTo(row, tile)) {
                             BadRequest(json.pretty(json.render(
-                                ("why" -> "You try to flap your wings like a bird to fly over the water, but fail miserably.")
+                                ("why" -> (tile.terrain match {
+                                    case "impassable" => "You walk into the wall and, to nobody's surprise, it hurts."
+                                    case "river" | "ocean" | "lake" => "You try to flap your wings like a bird to fly over the water, but fail miserably."
+                                }))
                             ))).as("application/json")
                         } else {
                             val rows = DB.withConnection { implicit c =>

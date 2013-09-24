@@ -12,6 +12,8 @@ import scala.concurrent.duration._
 object Adventurer {
     object Vision {
         private val FriendlyTerrainNane = Map(
+            "cave" -> "Cave",
+            "impassable" -> "Solid Wall",
             "ocean" -> "Ocean",
             "coast" -> "Coast",
             "lakeshore" -> "Lakeshore",
@@ -42,6 +44,8 @@ object Adventurer {
 
         // TODO: write the flavor text
         private val FlavorText = Map(
+            "cave" -> "You're in some kind of cave system. It's pretty dark in here.",
+            "impassable" -> "Wat.",
             "ocean" -> "It's the ocean. I have no idea how you got here.",
             "coast" -> "Coast.",
             "lakeshore" -> "The waves of the lake gently caress the shoreline. The lake is dyed a deep blue.",
