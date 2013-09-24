@@ -118,20 +118,8 @@ Nobody here.
     private def greet(name : String) {
         println(s"""
 ${Display.StartHilight}Hello, Adventurer $name, and welcome to...${Display.Reset}
-${Display.fg(238)}
-:::::::::::::::::::::::::::::::::::::${Display.fg(244)}
- T  H  E    L  E  G  E  N  D    O  F ${Display.fg(250)}
-:::::::::::::::::::::::::::::::::::::${Display.fg(196)}
-.oPYo. .oPYo.      .oo o          .oo
-8      8    8     .P 8 8         .P 8
-`Yooo. 8         .P  8 8        .P  8
-    `8 8        oPooo8 8       oPooo8
-     8 8    8  .P    8 8      .P    8
-`YooP' `YooP' .P     8 8oooo .P     8${Display.fg(250)}
-:.....::.....:..:::::..........:::::.${Display.fg(244)}
-:::::::::::::::::::::::::::::::::::::${Display.fg(238)}
-:::::::::::::::::::::::::::::::::::::${Display.Reset}
 
+${Images.LogoSplash}
  * Why don't you start off by `.look`ing around?
 
  * Or maybe checking your `.inventory`?

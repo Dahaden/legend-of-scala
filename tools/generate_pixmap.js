@@ -36,7 +36,7 @@ png.decode(function (pixels) {
                 line += make_escape(antsy.get_color(c)) + "  " + "\x1b[0m";
             }
         }
-        buf += "|" + line + "\n";
+        buf += line + "\n";
     }
-    console.log("def image = s\"\"\"\n" + buf.replace(/\x1b/g, "${27.toChar}") + "\"\"\".trim.stripMargin");
+    console.log(buf);
 });

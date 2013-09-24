@@ -55,6 +55,11 @@ class MapLegend(val id: Int, val attrs : json.JObject, val owner : Adventurer) e
             None
         }
 
+        case _ if !args(0).isInstanceOf[Map.Tile] => {
+            Display.show("Huh, that didn't work. What if you use it on a map tile?")
+            None
+        }
+
         case _ => {
             val s = args(0).asInstanceOf[Map.Tile].terrain
             val c = MapLegend.Colors.getOrElse(s, 0)
