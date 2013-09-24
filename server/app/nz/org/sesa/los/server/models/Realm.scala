@@ -15,5 +15,9 @@ object Realm {
     def loadTiles(name : String) = {
         this.cache(name)
     }
+
+    def unloadTiles(name : String) = {
+        //this.cache -= name
+    }
 }
 

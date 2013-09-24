@@ -4,6 +4,8 @@ import nz.org.sesa.los.client.Adventurer
 import nz.org.sesa.los.client.Item
 import nz.org.sesa.los.client.util._
 
+import net.liftweb.json
+
 private object MapLegend {
     val Colors = scala.collection.immutable.Map(
         "ocean" -> 60,
@@ -35,7 +37,7 @@ private object MapLegend {
     )
 }
 
-class MapLegend(val id: Int, val owner : Adventurer) extends Item {
+class MapLegend(val id: Int, val attrs : json.JObject, val owner : Adventurer) extends Item {
     def name = "map legend"
     def examine = "It's a torn off piece of paper, with some kind of map legend on it."
     def image = s"""

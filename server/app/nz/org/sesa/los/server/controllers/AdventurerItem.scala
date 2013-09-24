@@ -11,7 +11,10 @@ import net.liftweb.json.JsonDSL._
 object AdventurerItem extends Controller {
     private def getRow(itemId : Int, owner : String) = {
         DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT items.id AS id, items.kind AS kind, items.attrs AS attrs, adventurers.name AS owner
+            val rows = SQL("""SELECT items.id AS id,
+                                     items.kind AS kind,
+                                     items.attrs AS attrs,
+                                     adventurers.name AS owner
                                FROM items, adventurers
                                WHERE items.id = {id} AND
                                      items.owner_id = adventurers.id AND
@@ -29,7 +32,10 @@ object AdventurerItem extends Controller {
 
     def index(adventurerName : String) = Action { request =>
         DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT items.id AS id, items.kind AS kind, items.attrs AS attrs, adventurers.name AS owner
+            val rows = SQL("""SELECT items.id AS id,
+                                     items.kind AS kind,
+                                     items.attrs AS attrs,
+                                     adventurers.name AS owner
                               FROM items, adventurers
                               WHERE items.owner_id = adventurers.id AND
                               adventurers.name = {owner}""").on(

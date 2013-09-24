@@ -27,6 +27,28 @@ object RealmTile extends Controller {
         }
     }
 
+    private def getFeatures(realmName : String, x : Int, y : Int) = {
+        DB.withConnection { implicit c =>
+            val rows = SQL("""SELECT features.id AS id,
+                                     features.kind AS kind,
+                                     features.attrs AS attr,
+                                     features.x AS x,
+                                     features.y as y,
+                                     realms.name AS realm
+                              FROM features, realms
+                              WHERE features.realm_id = realms.id AND
+                                    realms.name = {name} AND
+                                    features.x = {x} AND
+                                    features.y = {y}""").on(
+                "name" -> realmName,
+                "x" -> x,
+                "y" -> y
+            )
+
+            rows().toList
+        }
+    }
+
     def view(realmName : String, x : Int, y : Int) = Action { request =>
         this.getRow(realmName) match {
             case None => {
@@ -41,6 +63,11 @@ object RealmTile extends Controller {
 
                 Ok(json.pretty(json.render(
                     ("terrain" -> tile.terrain) ~
+                    ("features" -> getFeatures(realmName, x, y).map({ row =>
+                        ("id" -> row[Int]("id"))
+                        ("kind" -> row[String]("kind")) ~
+                        ("attrs" -> json.parse(row[Option[String]]("attrs").getOrElse("null")))
+                    })) ~
                     ("pos" ->
                         ("x" -> x) ~
                         ("y" -> y) ~

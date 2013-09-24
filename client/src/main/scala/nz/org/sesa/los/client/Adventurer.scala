@@ -95,7 +95,7 @@ Nobody here.
      * Reference to a remote object. The adventurer should never be concerned with
      * this.
      */
-    private case class RemoteItemHandle(id : Int, kind : String, owner : String, attrs : String)
+    private case class RemoteItemHandle(id : Int, kind : String, owner : String, attrs : json.JObject)
 
     private def greet(name : String) {
         println(s"""
@@ -207,9 +207,9 @@ case class Adventurer private(private val id : Int, val name : String,
 
         json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody()).extract[List[Adventurer.RemoteItemHandle]] map { h =>
             h.kind match {
-                case "map"          => new items.Map(h.id, this)
-                case "map-legend"   => new items.MapLegend(h.id, this)
-                case "beacon"       => new items.Beacon(h.id, this)
+                case "map"          => new items.Map(h.id, h.attrs, this)
+                case "map-legend"   => new items.MapLegend(h.id, h.attrs, this)
+                case "beacon"       => new items.Beacon(h.id, h.attrs, this)
             }
         }
     }

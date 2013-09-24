@@ -47,7 +47,7 @@ object Map {
     }
 }
 
-class Map(val id : Int, val owner : Adventurer) extends Item {
+class Map(val id : Int, val attrs : json.JObject, val owner : Adventurer) extends Item {
     def name = "map"
     def examine = "It's a map, but the legend is missing."
     def image = s"""

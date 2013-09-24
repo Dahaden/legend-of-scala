@@ -4,12 +4,14 @@ import nz.org.sesa.los.client.util._
 
 import dispatch._, Defaults._
 import net.liftweb.json
+import net.liftweb.json.Serialization._
 
 import scala.concurrent._
 import scala.concurrent.duration._
 
 trait Item {
     val id : Int
+    val attrs : json.JObject
     val owner : Adventurer
 
     def name : String
