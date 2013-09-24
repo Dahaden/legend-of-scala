@@ -4,25 +4,33 @@
 import random
 import sys
 
+NORTH = 1
+SOUTH = 2
+WEST = 4
+EAST = 8
+
 MIN_FORKS = 5
 MAX_FORKS = 10
 
 MIN_STRAYING = 1
-MAX_STRAYING = 5
+MAX_STRAYING = 10
 
 def generate_dungeon(width, height):
-    branchable = []
+    trunk = []
 
     n = width * height
-    dungeon = [False] * n
+    dungeon = [0] * n
 
-    x, y = (width // 2, height - 1)
-    dungeon[y * width + x] = True
+    start = (width // 2, height - 1)
 
-    sidewayed = [None] * height
+    x, y = start
+    dungeon[y * width + x] = SOUTH
 
-    while y != 0:
-        branchable.append((x, y))
+    sidewayed = [None] * n
+    backwarded = [False] * n
+
+    while True:
+        trunk.append((x, y))
 
         opts = [(0, -1)]
 
@@ -36,15 +44,30 @@ def generate_dungeon(width, height):
                 if 0 <= x + dx < width]
 
         dx, dy = random.choice(opts)
-        if dy == 0:
-            sidewayed[y] = (dx, dy)
+        nx, ny = x + dx, y + dy
 
-        x += dx
-        y += dy
+        if y == 0:
+            break
 
-        dungeon[y * width + x] = True
+        if (dx, dy) == (0, -1):
+            dungeon[ny * width + nx]    |= SOUTH
+            dungeon[y * width + x]      |= NORTH
 
-    ex, ey = x, y
+        if (dx, dy) == (1, 0):
+            dungeon[ny * width + nx]    |= WEST
+            dungeon[y * width + x]      |= EAST
+            sidewayed[y] = (1, 0)
+
+        if (dx, dy) == (-1, 0):
+            dungeon[ny * width + nx]    |= EAST
+            dungeon[y * width + x]      |= WEST
+            sidewayed[y] = (-1, 0)
+
+        x = nx
+        y = ny
+
+    branchable = [(x, y) for (x, y) in trunk[:-1]
+                  if dungeon[y * width + x] & NORTH != 0]
 
     random.shuffle(branchable)
 
@@ -57,18 +80,35 @@ def generate_dungeon(width, height):
             opts = [(dx, dy)
                     for (dx, dy) in [(0, -1), (1, 0), (-1, 0)]
                     if 0 <= x + dx < width and
-                       1 <= y + dy < height - 1 and
+                       0 <= y + dy < height and
                        dungeon[(y + dy) * width + (x + dx)] == 0]
 
             if not opts:
                 break
 
             dx, dy = random.choice(opts)
-            x, y = x + dx, y + dy
+            nx, ny = x + dx, y + dy
 
-            dungeon[y * width + x] = True
+            if (dx, dy) == (0, -1):
+                dungeon[ny * width + nx]    |= SOUTH
+                dungeon[y * width + x]      |= NORTH
 
-    return dungeon, (ex, ey)
+            if (dx, dy) == (0, 1):
+                dungeon[ny * width + nx]    |= NORTH
+                dungeon[y * width + x]      |= SOUTH
+
+            if (dx, dy) == (1, 0):
+                dungeon[ny * width + nx]    |= WEST
+                dungeon[y * width + x]      |= EAST
+
+            if (dx, dy) == (-1, 0):
+                dungeon[ny * width + nx]    |= EAST
+                dungeon[y * width + x]      |= WEST
+
+            x = nx
+            y = ny
+
+    return dungeon, trunk[-1]
 
 
 def draw_dungeon(dungeon, end, width, height):
@@ -79,10 +119,24 @@ def draw_dungeon(dungeon, end, width, height):
             elif (x, y) == end:
                 sys.stdout.write("\x1b[38;5;196m")
             i = y * width + x
-            if dungeon[i]:
-                sys.stdout.write("#")
-            else:
-                sys.stdout.write(" ")
+            sys.stdout.write({
+                0: " ",
+                NORTH: "╵",
+                SOUTH: "╷",
+                WEST: "╴",
+                EAST: "╶",
+                NORTH | SOUTH: "│",
+                WEST | EAST: "─",
+                NORTH | EAST: "└",
+                NORTH | WEST: "┘",
+                SOUTH | EAST: "┌",
+                SOUTH | WEST: "┐",
+                NORTH | SOUTH | EAST: "├",
+                NORTH | SOUTH | WEST: "┤",
+                NORTH | WEST | EAST: "┴",
+                SOUTH | WEST | EAST: "┬",
+                NORTH | SOUTH | EAST | WEST: "┼"
+            }[dungeon[i]])
             sys.stdout.write("\x1b[0m")
         print ""
 
