@@ -3,6 +3,16 @@ package nz.org.sesa.los.client
 import nz.org.sesa.los.client.util._
 import net.liftweb.json
 
+object Feature {
+    case class RemoteHandle(id : Int, kind : String, attrs : json.JObject) {
+        def deserialize = {
+            kind match {
+                case _          => null
+            }
+        }
+    }
+}
+
 trait Feature {
     val id : Int
     val attrs : json.JObject
@@ -25,7 +35,7 @@ trait Feature {
         "\n" + imageLines.zipWithIndex.map { case (l, i) =>
             if (i == imageLines.length / 2) {
                 val numSpaces = l.filter({x => x == ' '}).length
-                l + (numSpaces to 28).map(_ => " ").mkString + this.name
+                l + (numSpaces to 36).map(_ => " ").mkString + this.name
             } else {
                 l
             }

@@ -9,6 +9,22 @@ import net.liftweb.json.Serialization._
 import scala.concurrent._
 import scala.concurrent.duration._
 
+object Item {
+    /**
+     * Reference to a remote object. The adventurer should never be concerned with
+     * this.
+     */
+    case class RemoteHandle(id : Int, kind : String, owner : String, attrs : json.JObject) {
+        def deserialize(adventurer : Adventurer) = {
+            kind match {
+                case "map"          => new items.Map(id, attrs, adventurer)
+                case "map-legend"   => new items.MapLegend(id, attrs, adventurer)
+                case "beacon"       => new items.Beacon(id, attrs, adventurer)
+            }
+        }
+    }
+}
+
 trait Item {
     val id : Int
     val attrs : json.JObject

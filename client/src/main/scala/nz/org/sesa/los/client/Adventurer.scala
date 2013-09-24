@@ -74,21 +74,13 @@ object Adventurer {
             "tropical-seasonal-forest" -> 65
         )
 
-        case class RemoteFeatureHandle(id : Int, kind : String, attrs : json.JObject) {
-            def deserialize = {
-                kind match {
-                    case _          => null
-                }
-            }
-        }
-
         val Directions = List("north", "northeast", "east", "southeast", "south", "southwest", "west", "northwest")
     }
 
     /**
      * A vision, obtained when using me.look.
      */
-    case class Vision(val pos : Position, val terrain : String, val exits : List[Boolean], val features_ : List[Vision.RemoteFeatureHandle]) {
+    case class Vision(val pos : Position, val terrain : String, val exits : List[Boolean], val features_ : List[Feature.RemoteHandle]) {
         val features = features_.map(_.deserialize)
 
         override def toString = {
@@ -118,20 +110,6 @@ ${Display.StartHilight}Other Adventurers${Display.Reset}
 Nobody here.
 
 """
-        }
-    }
-
-    /**
-     * Reference to a remote object. The adventurer should never be concerned with
-     * this.
-     */
-    private case class RemoteItemHandle(id : Int, kind : String, owner : String, attrs : json.JObject) {
-        def deserialize(adventurer : Adventurer) = {
-            kind match {
-                case "map"          => new items.Map(id, attrs, adventurer)
-                case "map-legend"   => new items.MapLegend(id, attrs, adventurer)
-                case "beacon"       => new items.Beacon(id, attrs, adventurer)
-            }
         }
     }
 
@@ -233,7 +211,7 @@ case class Adventurer private(private val id : Int, val name : String,
         implicit val formats = json.DefaultFormats
 
         json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody())
-            .extract[List[Adventurer.RemoteItemHandle]].map(_.deserialize(this))
+            .extract[List[Item.RemoteHandle]].map(_.deserialize(this))
     }
 
     def look = {
