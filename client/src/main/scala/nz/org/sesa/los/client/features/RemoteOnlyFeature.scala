@@ -14,21 +14,23 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
-class RemoteOnlyFeature(val id : Int, val kind : String, val bindee : Adventurer) extends Feature {
-    def name = kind
+class RemoteOnlyFeature(val id : Int, val behavior : String, val bindee : Adventurer) extends Feature {
+    def name = behavior match {
+        case _ => behavior
+    }
 
-    def examine = kind match {
+    def examine = behavior match {
         case "portal" => "It's a portal to a different realm."
         case "chest" => "It's a sturdy wooden chest. You can open it."
     }
-    def image = io.Source.fromInputStream(this.getClass.getResourceAsStream(kind match {
+    def image = io.Source.fromInputStream(this.getClass.getResourceAsStream(behavior match {
         case "portal" => "/images/portal.txt"
         case "chest" => "/images/chest.txt"
     })).mkString
 
     def action[T : TypeTag](args: Any*) = () match {
         case _ if args.length > 0 => {
-            Display.show(kind match {
+            Display.show(behavior match {
                 case "portal" => "Yeah, you're just going to have to go in there yourself."
                 case "chest" => "Seriously, what are you trying to use this chest with?"
             })
@@ -44,6 +46,7 @@ class RemoteOnlyFeature(val id : Int, val kind : String, val bindee : Adventurer
             var js = json.parse(resp.getResponseBody())
 
             Display.show((js \ "why").extract[String])
+            this.bindee.refresh
             None
         }
     }

@@ -10,7 +10,7 @@ object Feature {
             implicit val formats = json.DefaultFormats
 
             kind match {
-                case "remote_only"  => new features.RemoteOnlyFeature(id, (attrs \ "kind").extract[String], bindee)
+                case "remote_only"  => new features.RemoteOnlyFeature(id, (attrs \ "behavior").extract[String], bindee)
             }
         }
     }

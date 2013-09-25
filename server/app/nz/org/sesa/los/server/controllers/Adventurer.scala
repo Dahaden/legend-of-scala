@@ -64,7 +64,7 @@ object Adventurer extends Controller {
             SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
                    VALUES ("remote_only", {attrs}, {x}, {y}, {dungeonId})""").on(
                 "attrs" -> json.pretty(json.render(
-                    ("kind" -> "chest") ~
+                    ("behavior" -> "chest") ~
                     ("items" -> List(
                         (
                             ("name" -> "weapon") ~
@@ -107,7 +107,7 @@ object Adventurer extends Controller {
             SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
                    VALUES ("remote_only", {attrs}, {x}, {y}, {dungeonId})""").on(
                 "attrs" -> json.pretty(json.render(
-                    ("kind" -> "portal") ~
+                    ("behavior" -> "portal") ~
                     ("target" -> (
                         ("realm" -> "world") ~
                         ("x" -> x) ~

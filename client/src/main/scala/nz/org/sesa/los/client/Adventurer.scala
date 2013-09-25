@@ -10,6 +10,8 @@ import scala.concurrent._
 import scala.concurrent.duration._
 
 object Adventurer {
+    case class RemoteHandle(val id : Int, val name : String, var level : Int, var pos : Position, var hp : Int, var xp : Int)
+
     object Vision {
         private val FriendlyTerrainNane = Map(
             "cave" -> "Cave",
@@ -131,49 +133,48 @@ ${io.Source.fromInputStream(this.getClass.getResourceAsStream("/images/splash.tx
     }
 
     def login(name : String) = {
-        val req = :/(Global.ServerAddress) / "adventurers" / name
-
-        implicit val formats = json.DefaultFormats
-
-        val resp = Await.result(Global.http(req), Duration.Inf)
-        var js = json.parse(resp.getResponseBody())
-
-        resp.getStatusCode() match {
-            case 200 => {
-                // we need to rename some things for case class extraction
-                js = js ++ (
-                    ("level_" -> js \ "level") ~
-                    ("pos_" -> js \ "pos") ~
-                    ("hp_" -> js \ "hp") ~
-                    ("xp_" -> js \ "xp")
-                )
-
-                val adventurer = js.extract[Adventurer]
-                greet(adventurer.name)
-                adventurer
-            }
-
-            case 404 => {
-                Display.show((js \ "why").extract[String])
-                null
-            }
+        val adventurer = new Adventurer(name)
+        if (adventurer.refresh) {
+            greet(adventurer.name)
+            adventurer
+        } else {
+            null
         }
     }
 }
 
-case class Adventurer private(private val id : Int, val name : String,
-                              private var level_ : Int,
-                              private var pos_ : Position,
-                              private var hp_ : Int,
-                              private var xp_ : Int) {
-    def level : Int = level_
-    def pos : Position = pos_
+case class Adventurer private(val name : String) {
+    def level : Int = rh.level
+    def pos : Position = rh.pos
 
-    def hp : Int = hp_
-    def xp : Int = xp_
+    def hp : Int = rh.hp
+    def xp : Int = rh.xp
 
-    def maxHp : Int = level * 100
-    def maxXp : Int = level * 100
+    def maxHp : Int = rh.level * 100
+    def maxXp : Int = rh.level * 100
+
+    private var rh : Adventurer.RemoteHandle = null
+
+    def refresh : Boolean = {
+        val req = :/(Global.ServerAddress) / "adventurers" / this.name
+
+        implicit val formats = json.DefaultFormats
+
+        val resp = Await.result(Global.http(req), Duration.Inf)
+        val js = json.parse(resp.getResponseBody())
+
+        resp.getStatusCode() match {
+            case 200 => {
+                this.rh = js.extract[Adventurer.RemoteHandle]
+                true
+            }
+
+            case 404 => {
+                Display.show((js \ "why").extract[String])
+                false
+            }
+        }
+    }
 
     def title : String =
         if (level <= 5) {
@@ -242,14 +243,14 @@ case class Adventurer private(private val id : Int, val name : String,
                 false
             }
             case 200 => {
-                this.pos_ = js.extract[Position]
                 Display.show(s"You move ${direction.toLowerCase}wards.")
+                this.refresh
                 true
             }
         }
     }
 
-        override def toString = s"""
+    override def toString = s"""
 ${Display.StartHilight}$name the $title${Display.Reset}
 ${Display.StartHilight}.level =${Display.Reset} $level
 
