@@ -15,7 +15,7 @@ import scala.reflect.runtime.universe.{TypeTag, typeOf}
 class Chest(val id : Int) extends Feature {
     def name = "chest"
     def examine = "It's a sturdy wooden chest. You can open it."
-    def image = Images.Beacon
+    def image = Images.Chest
 
     def action[T : TypeTag](args: Any*) = () match {
         case _ if args.length > 0 => {

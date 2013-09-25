@@ -29,6 +29,11 @@ package object los {
     type Position = client.Position
 
     def main(args: Array[String]) {
+        if (System.getenv("LOS_HOST") == null) {
+            println("LOS_HOST not set.")
+            return
+        }
+
         val settings = new Settings()
         settings.embeddedDefaults[Adventurer]
 

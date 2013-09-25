@@ -80,7 +80,7 @@ object Adventurer {
     /**
      * A vision, obtained when using me.look.
      */
-    case class Vision(val pos : Position, val terrain : String, val exits : List[Boolean], features_ : List[Feature.RemoteHandle], adventurers : List[String]) {
+    case class Vision(val pos : Position, val terrain : String, val exits : List[Boolean], features_ : List[Feature.RemoteHandle], val adventurers : List[String]) {
         val features = features_.map(_.deserialize)
 
         override def toString = {
@@ -95,19 +95,21 @@ object Adventurer {
             }
 
             s"""
-${Display.StartHilight}${Vision.FriendlyTerrainNane.get(terrain).head} (${pos.x}, ${pos.y})${Display.Reset}
-${Vision.FlavorText.get(terrain).head}
+${Display.StartHilight}${Vision.FriendlyTerrainNane.getOrElse(terrain, terrain)}${Display.Reset}
+${Display.StartHilight}.pos${Display.Reset} = $pos
+
+${Vision.FlavorText.getOrElse(terrain, "???")}
 
 $possibleExits
 
-${Display.StartHilight}Features of Interest${Display.Reset}
+${Display.StartHilight}.features =${Display.Reset}
 ${features}
 
-${Display.StartHilight}Monsters${Display.Reset}
-No monsters.
+${Display.StartHilight}.monsters =${Display.Reset}
+${List()}
 
-${Display.StartHilight}Other Adventurers${Display.Reset}
-${if (adventurers.length > 0) "\n" + adventurers.map({n => " * " + n}).mkString("\n\n") else "Nobody else here."}
+${Display.StartHilight}.adventurers =${Display.Reset}
+${adventurers}
 """
         }
     }
@@ -248,8 +250,10 @@ case class Adventurer private(private val id : Int, val name : String,
     }
 
         override def toString = s"""
-${Display.StartHilight}$name, the Level $level $title${Display.Reset}
-${Display.Bold}${Display.fg(196)}HP:${Display.Reset} $hp/$maxHp
-${Display.Bold}${Display.fg(226)}XP:${Display.Reset} $xp/$maxXp
+${Display.StartHilight}$name the $title${Display.Reset}
+${Display.StartHilight}.level =${Display.Reset} $level
+
+${Display.Bold}${Display.fg(196)}.hp =${Display.Reset} $hp/$maxHp
+${Display.Bold}${Display.fg(226)}.xp =${Display.Reset} $xp/$maxXp
 """
 }

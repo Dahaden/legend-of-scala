@@ -65,16 +65,9 @@ trait Item {
 
     protected def action[T : TypeTag](args: Any*) : Option[T]
 
-    override def toString = {
-        val imageLines = this.image.split("\n")
+    override def toString = s"""
+${this.image}
 
-        "\n" + imageLines.zipWithIndex.map { case (l, i) =>
-            if (i == imageLines.length / 2) {
-                val numSpaces = l.filter({x => x == ' '}).length
-                l + (numSpaces to 28).map(_ => " ").mkString + this.name
-            } else {
-                l
-            }
-        }.mkString("\n") + "\n"
-    }
+${Display.StartHilight}.name = ${this.name}${Display.Reset}
+"""
 }
