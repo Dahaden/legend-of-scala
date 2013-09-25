@@ -100,32 +100,41 @@ object RealmTileFeature extends Controller {
                 val kind = row[String]("kind")
                 val attrs = json.parse(row[Option[String]]("attrs").getOrElse("null"))
 
-                kind match {
-                    case "remote_only" => {
-                        implicit val formats = json.DefaultFormats
+                val monsters = models.Realm.getMonsters(realmName, x, y)
 
-                        val behavior = (attrs \ "behavior").extract[String]
-                        behavior match {
-                            case "portal" => {
-                                adventurerOption match {
-                                    case Some(adventurer) => RemoteOnlyBehaviors.teleport(adventurer, (attrs \ "target").extract[Position])
-                                    case None => BadRequest(json.pretty(json.render(
-                                        ("why" -> s"Need adventurer.")
+                if (monsters.length > 0) {
+                    BadRequest(json.pretty(json.render(
+                        ("why" -> (if (monsters.length > 1) "Monsters block your way." else "A monster blocks your way."))
+                    ))).as("application/json")
+                } else {
+                    // XXX: make this less arrow code-y
+                    kind match {
+                        case "remote_only" => {
+                            implicit val formats = json.DefaultFormats
+
+                            val behavior = (attrs \ "behavior").extract[String]
+                            behavior match {
+                                case "portal" => {
+                                    adventurerOption match {
+                                        case Some(adventurer) => RemoteOnlyBehaviors.teleport(adventurer, (attrs \ "target").extract[Position])
+                                        case None => BadRequest(json.pretty(json.render(
+                                            ("why" -> s"Need adventurer.")
+                                        ))).as("application/json")
+                                    }
+                                }
+
+                                case "chest" => {
+                                    // TODO: implement
+                                    BadRequest(json.pretty(json.render(
+                                        ("why" -> s"NOT IMPLEMENTED")
                                     ))).as("application/json")
                                 }
                             }
-
-                            case "chest" => {
-                                // TODO: implement
-                                BadRequest(json.pretty(json.render(
-                                    ("why" -> s"NOT IMPLEMENTED")
-                                ))).as("application/json")
-                            }
                         }
+                        case _ => BadRequest(json.pretty(json.render(
+                            ("why" -> s"Can't use this feature.")
+                        ))).as("application/json")
                     }
-                    case _ => BadRequest(json.pretty(json.render(
-                        ("why" -> s"Can't use this feature.")
-                    ))).as("application/json")
                 }
             }
         }
