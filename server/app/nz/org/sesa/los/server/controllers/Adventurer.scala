@@ -193,30 +193,28 @@ object Adventurer extends Controller {
                         val i = y * w + x
                         val tile = models.Realm.loadTiles(realm)(i)
 
-                        if (!models.Adventurer.canMoveTo(row, tile)) {
-                            BadRequest(json.pretty(json.render(
-                                ("why" -> (tile.terrain match {
-                                    case "impassable" => "You walk into the wall and, to nobody's surprise, it hurts."
-                                    case "river" | "ocean" | "lake" => "You try to flap your wings like a bird to fly over the water, but fail miserably."
-                                    case "lava" => "Um, you know that's lava, right?"
-                                }))
+                        models.Adventurer.moveDenialFor(row, tile) match {
+                            case Some(denial) => BadRequest(json.pretty(json.render(
+                                ("why" -> denial)
                             ))).as("application/json")
-                        } else {
-                            val rows = DB.withConnection { implicit c =>
-                                SQL("""UPDATE adventurers
-                                       SET x = {x}, y = {y}
-                                       WHERE name = {name}""").on(
-                                    "name" -> adventurerName,
-                                    "x" -> x,
-                                    "y" -> y
-                                ).execute()
-                            }
 
-                            Ok(json.pretty(json.render(
-                                ("x" -> x) ~
-                                ("y" -> y) ~
-                                ("realm" -> realm)
-                            ))).as("application/json")
+                            case None => {
+                                val rows = DB.withConnection { implicit c =>
+                                    SQL("""UPDATE adventurers
+                                           SET x = {x}, y = {y}
+                                           WHERE name = {name}""").on(
+                                        "name" -> adventurerName,
+                                        "x" -> x,
+                                        "y" -> y
+                                    ).execute()
+                                }
+
+                                Ok(json.pretty(json.render(
+                                    ("x" -> x) ~
+                                    ("y" -> y) ~
+                                    ("realm" -> realm)
+                                ))).as("application/json")
+                            }
                         }
                     }
 

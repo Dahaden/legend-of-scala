@@ -12,75 +12,6 @@ import net.liftweb.json.Extraction._
 import nz.org.sesa.los.server.models
 
 object RealmTile extends Controller {
-    private def getFeatures(realmName : String, x : Int, y : Int) = {
-        DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT features.id AS id,
-                                     features.kind AS kind,
-                                     features.attrs AS attrs,
-                                     features.x AS x,
-                                     features.y as y,
-                                     realms.name AS realm
-                              FROM features, realms
-                              WHERE features.realm_id = realms.id AND
-                                    realms.name = {name} AND
-                                    features.x = {x} AND
-                                    features.y = {y}""").on(
-                "name" -> realmName,
-                "x" -> x,
-                "y" -> y
-            )
-
-            rows().toList
-        }
-    }
-
-    private def getMonsters(realmName : String, x : Int, y : Int) = {
-        DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT monsters.id AS id,
-                                     monsters.kind AS kind,
-                                     monsters.level AS level,
-                                     monsters.drops AS drops,
-                                     monsters.x AS x,
-                                     monsters.y as y,
-                                     realms.name AS realm
-                              FROM monsters, realms
-                              WHERE monsters.realm_id = realms.id AND
-                                    realms.name = {name} AND
-                                    monsters.x = {x} AND
-                                    monsters.y = {y}""").on(
-                "name" -> realmName,
-                "x" -> x,
-                "y" -> y
-            )
-
-            rows().toList
-        }
-    }
-
-    private def getAdventurers(realmName : String, x : Int, y : Int) = {
-        DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT adventurers.id AS id,
-                                     adventurers.name AS name,
-                                     adventurers.level AS level,
-                                     adventurers.x AS x,
-                                     adventurers.y AS y,
-                                     realms.name AS realm,
-                                     adventurers.hp AS hp,
-                                     adventurers.xp AS xp
-                              FROM adventurers, realms
-                              WHERE adventurers.realm_id = realms.id AND
-                                    realms.name = {name} AND
-                                    adventurers.x = {x} AND
-                                    adventurers.y = {y}""").on(
-                "name" -> realmName,
-                "x" -> x,
-                "y" -> y
-           )
-
-            rows().toList
-        }
-    }
-
     def view(realmName : String, x : Int, y : Int, adventurerName : Option[String]) = Action { request =>
         models.Realm.getRow(realmName) match {
             case None => {
@@ -95,7 +26,7 @@ object RealmTile extends Controller {
 
                 val pred = adventurerName.fold { _ : models.Realm.Tile => true } { adventurerName =>
                     models.Adventurer.getRow(adventurerName).fold { _ : models.Realm.Tile => false } { row =>
-                        models.Adventurer.canMoveTo(row, _)
+                        !models.Adventurer.moveDenialFor(row, _).isDefined
                     }
                 }
 
@@ -126,18 +57,18 @@ object RealmTile extends Controller {
 
                 Ok(json.pretty(json.render(
                     ("terrain" -> tile.terrain) ~
-                    ("features" -> getFeatures(realmName, x, y).map({ row =>
+                    ("features" -> models.Realm.getFeatures(realmName, x, y).map({ row =>
                         ("id" -> row[Int]("id")) ~
                         ("kind" -> row[String]("kind")) ~
                         ("attrs" -> json.parse(row[Option[String]]("attrs").getOrElse("null")))
                     })) ~
-                    ("monsters" -> getMonsters(realmName, x, y).map({ row =>
+                    ("monsters" -> models.Realm.getMonsters(realmName, x, y).map({ row =>
                         ("id" -> row[Int]("id")) ~
                         ("kind" -> row[String]("kind")) ~
                         ("level" -> row[Int]("level")) ~
                         ("drops" -> json.parse(row[String]("drops")))
                     })) ~
-                    ("adventurers" -> getAdventurers(realmName, x, y).map({ row =>
+                    ("adventurers" -> models.Realm.getAdventurers(realmName, x, y).map({ row =>
                         row[String]("name")
                     }).filter({ name =>
                         adventurerName.fold {true} (_ != name)

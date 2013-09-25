@@ -31,10 +31,17 @@ object Adventurer {
         }
     }
 
-    def canMoveTo(adventurerRow : Row, tile : Realm.Tile) = {
-        tile.terrain match {
-            case "river" | "lake" | "ocean" | "lava" | "impassable" => false
-            case _ => true
+    def moveDenialFor(adventurerRow : Row, tile : Realm.Tile) = {
+        val monsters = Realm.getMonsters(adventurerRow[String]("realm"), adventurerRow[Int]("x"), adventurerRow[Int]("y"))
+        if (monsters.length > 0) {
+            Some(if (monsters.length > 1) "Monsters block your path." else "A monster blocks your path.")
+        } else {
+            tile.terrain match {
+                case "river" | "lake" | "ocean" => Some("You try to flap your wings like a bird to fly over the water, but fail miserably.")
+                case "lava" => Some("Um yeah, that's like, lava.")
+                case "impassable" => Some("You walk into the wall and, to nobody's surprise, it hurts.")
+                case _ => None
+            }
         }
     }
 }

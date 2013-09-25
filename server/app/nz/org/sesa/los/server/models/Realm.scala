@@ -29,6 +29,75 @@ object Realm {
         }
     }
 
+    def getFeatures(realmName : String, x : Int, y : Int) = {
+        DB.withConnection { implicit c =>
+            val rows = SQL("""SELECT features.id AS id,
+                                     features.kind AS kind,
+                                     features.attrs AS attrs,
+                                     features.x AS x,
+                                     features.y as y,
+                                     realms.name AS realm
+                              FROM features, realms
+                              WHERE features.realm_id = realms.id AND
+                                    realms.name = {name} AND
+                                    features.x = {x} AND
+                                    features.y = {y}""").on(
+                "name" -> realmName,
+                "x" -> x,
+                "y" -> y
+            )
+
+            rows().toList
+        }
+    }
+
+    def getMonsters(realmName : String, x : Int, y : Int) = {
+        DB.withConnection { implicit c =>
+            val rows = SQL("""SELECT monsters.id AS id,
+                                     monsters.kind AS kind,
+                                     monsters.level AS level,
+                                     monsters.drops AS drops,
+                                     monsters.x AS x,
+                                     monsters.y as y,
+                                     realms.name AS realm
+                              FROM monsters, realms
+                              WHERE monsters.realm_id = realms.id AND
+                                    realms.name = {name} AND
+                                    monsters.x = {x} AND
+                                    monsters.y = {y}""").on(
+                "name" -> realmName,
+                "x" -> x,
+                "y" -> y
+            )
+
+            rows().toList
+        }
+    }
+
+    def getAdventurers(realmName : String, x : Int, y : Int) = {
+        DB.withConnection { implicit c =>
+            val rows = SQL("""SELECT adventurers.id AS id,
+                                     adventurers.name AS name,
+                                     adventurers.level AS level,
+                                     adventurers.x AS x,
+                                     adventurers.y AS y,
+                                     realms.name AS realm,
+                                     adventurers.hp AS hp,
+                                     adventurers.xp AS xp
+                              FROM adventurers, realms
+                              WHERE adventurers.realm_id = realms.id AND
+                                    realms.name = {name} AND
+                                    adventurers.x = {x} AND
+                                    adventurers.y = {y}""").on(
+                "name" -> realmName,
+                "x" -> x,
+                "y" -> y
+           )
+
+            rows().toList
+        }
+    }
+
     private def fileNameForRealm(name : String) = s"maps/${name}.json"
 
     private val cache : mutable.Map[String, List[Tile]] = mutable.Map().withDefault(loadFromFile)
