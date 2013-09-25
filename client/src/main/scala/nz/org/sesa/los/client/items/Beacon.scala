@@ -15,7 +15,7 @@ import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
 object Beacon {
     case class Signal(val pos : Position, val name : String, val kind : String) {
-        override def toString = s"$kind $name at (${pos.x}, ${pos.y})"
+        override def toString = s"Signal(.pos = $pos, .kind = $kind, .name = $name)"
     }
 
     object Signal {
