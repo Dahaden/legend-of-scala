@@ -77,11 +77,17 @@ object Adventurer {
         val Directions = List("north", "northeast", "east", "southeast", "south", "southwest", "west", "northwest")
     }
 
+    case class VisionHandle(val pos : Position, val terrain : String, val exits : List[Boolean], val features : List[Feature.RemoteHandle], val adventurers : List[String])
+
     /**
      * A vision, obtained when using me.look.
      */
-    case class Vision(val pos : Position, val terrain : String, val exits : List[Boolean], features_ : List[Feature.RemoteHandle], val adventurers : List[String]) {
-        val features = features_.map(_.deserialize)
+    case class Vision(val vh : VisionHandle, bindee : Adventurer) {
+        val pos = vh.pos
+        val terrain = vh.terrain
+        val exits = vh.exits
+        val features = vh.features.map(_.deserialize(bindee))
+        val adventurers = vh.adventurers
 
         override def toString = {
             val directions = exits.zip(Vision.Directions)
@@ -216,11 +222,8 @@ case class Adventurer private(private val id : Int, val name : String,
         implicit val formats = json.DefaultFormats
 
         var js = json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody())
-        js = js ++ (
-            ("features_" -> js \ "features")
-        )
 
-        js.extract[Adventurer.Vision]
+        new Adventurer.Vision(js.extract[Adventurer.VisionHandle], this)
     }
 
     def move(direction : String) = {

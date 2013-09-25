@@ -54,8 +54,17 @@ object RealmTileFeature extends Controller {
     }
 
     def use(realmName : String, x : Int, y : Int, featureId : Int, adventurerName : Option[String]) = Action { request =>
-        BadRequest(json.pretty(json.render(
-            ("why" -> s"Can't use this feature.")
-        ))).as("application/json")
+        this.getRow(realmName, x, y, featureId) match {
+            case None => {
+                NotFound(json.pretty(json.render(
+                    ("why" -> s"Er, that doesn't exist anymore.")
+                ))).as("application/json")
+            }
+            case Some(row) => {
+                BadRequest(json.pretty(json.render(
+                    ("why" -> s"Can't use this feature.")
+                ))).as("application/json")
+            }
+        }
     }
 }

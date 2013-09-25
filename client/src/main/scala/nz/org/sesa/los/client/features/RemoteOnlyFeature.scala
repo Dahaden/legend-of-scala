@@ -1,5 +1,7 @@
 package nz.org.sesa.los.client.features
 
+import nz.org.sesa.los.client.Adventurer
+import nz.org.sesa.los.client.Global
 import nz.org.sesa.los.client.Position
 import nz.org.sesa.los.client.Feature
 import nz.org.sesa.los.client.util._
@@ -12,7 +14,7 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
-class RemoteOnlyFeature(val id : Int, val kind : String) extends Feature {
+class RemoteOnlyFeature(val id : Int, val kind : String, val bindee : Adventurer) extends Feature {
     def name = kind
 
     def examine = kind match {
@@ -34,6 +36,14 @@ class RemoteOnlyFeature(val id : Int, val kind : String) extends Feature {
         }
 
         case _ => {
+            val req = :/(Global.ServerAddress) / "realms" / bindee.pos.realm / (bindee.pos.x.toString + "," + bindee.pos.y.toString) / "features" / this.id <<? Map("adventurerName" -> bindee.name) << ""
+
+            implicit val formats = json.DefaultFormats
+
+            val resp = Await.result(Global.http(req), Duration.Inf)
+            var js = json.parse(resp.getResponseBody())
+
+            Display.show((js \ "why").extract[String])
             None
         }
     }

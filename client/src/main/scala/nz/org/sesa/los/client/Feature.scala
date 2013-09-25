@@ -6,11 +6,11 @@ import scala.reflect.runtime.universe.TypeTag
 
 object Feature {
     case class RemoteHandle(id : Int, kind : String, attrs : json.JObject) {
-        def deserialize = {
+        def deserialize(bindee : Adventurer) = {
             implicit val formats = json.DefaultFormats
 
             kind match {
-                case "remote_only"  => new features.RemoteOnlyFeature(id, (attrs \ "kind").extract[String])
+                case "remote_only"  => new features.RemoteOnlyFeature(id, (attrs \ "kind").extract[String], bindee)
             }
         }
     }
