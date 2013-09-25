@@ -62,8 +62,9 @@ object Adventurer extends Controller {
 
             // make chest at start of dungeon
             SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
-                   VALUES ("chest", {attrs}, {x}, {y}, {dungeonId})""").on(
+                   VALUES ("remote_only", {attrs}, {x}, {y}, {dungeonId})""").on(
                 "attrs" -> json.pretty(json.render(
+                    ("kind" -> "chest") ~
                     ("items" -> List(
                         (
                             ("name" -> "weapon") ~
@@ -104,8 +105,9 @@ object Adventurer extends Controller {
             val (x, y) = locs(rand.nextInt(locs.length))
 
             SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
-                   VALUES ("portal", {attrs}, {x}, {y}, {dungeonId})""").on(
+                   VALUES ("remote_only", {attrs}, {x}, {y}, {dungeonId})""").on(
                 "attrs" -> json.pretty(json.render(
+                    ("kind" -> "portal") ~
                     ("target" -> (
                         ("realm" -> "world") ~
                         ("x" -> x) ~

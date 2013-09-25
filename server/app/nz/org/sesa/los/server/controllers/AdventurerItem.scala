@@ -68,4 +68,10 @@ object AdventurerItem extends Controller {
             }
         }
     }
+
+    def use(adventurerName : String, itemId : Int) = Action { request =>
+        BadRequest(json.pretty(json.render(
+            ("why" -> s"Can't use this item.")
+        ))).as("application/json")
+    }
 }
