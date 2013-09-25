@@ -7,7 +7,7 @@ import nz.org.sesa.los.client.Images
 
 import net.liftweb.json
 
-import scala.reflect.runtime.universe.{TypeTag, typeTag}
+import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
 private object MapLegend {
     val Colors = scala.collection.immutable.Map(
@@ -47,7 +47,7 @@ class MapLegend(val id: Int, val owner : Adventurer) extends Item {
 
     override def remoting : Boolean = false
     def action[T : TypeTag](args: Any*) = () match {
-        case _ if typeTag[T] != typeTag[String] => {
+        case _ if !(typeOf[T] =:= typeOf[String]) => {
             Display.show("It looks like you can use this legend to find Strings.")
             None
         }

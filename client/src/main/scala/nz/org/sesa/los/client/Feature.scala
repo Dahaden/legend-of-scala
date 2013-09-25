@@ -2,13 +2,13 @@ package nz.org.sesa.los.client
 
 import nz.org.sesa.los.client.util._
 import net.liftweb.json
-import scala.reflect.runtime.universe.{TypeTag, typeTag}
+import scala.reflect.runtime.universe.TypeTag
 
 object Feature {
     case class RemoteHandle(id : Int, kind : String, attrs : json.JObject) {
         def deserialize = {
             kind match {
-                case _          => null
+                case "chest"        => new features.Chest(id)
             }
         }
     }
@@ -16,7 +16,6 @@ object Feature {
 
 trait Feature {
     val id : Int
-    val attrs : json.JObject
 
     def name : String
     def image : String
