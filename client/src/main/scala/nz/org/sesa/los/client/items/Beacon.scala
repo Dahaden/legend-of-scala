@@ -3,7 +3,6 @@ package nz.org.sesa.los.client.items
 import nz.org.sesa.los.client._
 import nz.org.sesa.los.client.util._
 import nz.org.sesa.los.client.Item
-import nz.org.sesa.los.client.Images
 
 import dispatch._, Defaults._
 import net.liftweb.json
@@ -26,7 +25,7 @@ object Beacon {
 class Beacon(val id : Int, val owner : Adventurer) extends Item {
     def name = "beacon"
     def examine = "It's some kind of glowing gem with weird glyphs on it. You can use it to find things on the map."
-    def image = Images.Beacon
+    def image = io.Source.fromInputStream(this.getClass.getResourceAsStream("/images/beacon.txt")).mkString
 
     def action[T : TypeTag](args: Any*) = () match {
         case _ if !(typeOf[T] =:= typeOf[List[Beacon.Signal]]) => {

@@ -9,6 +9,7 @@ object Feature {
         def deserialize = {
             kind match {
                 case "chest"        => new features.Chest(id)
+                case "portal"       => new features.Portal(id)
             }
         }
     }

@@ -1,7 +1,6 @@
 package nz.org.sesa.los.client.features
 
 import nz.org.sesa.los.client.Feature
-import nz.org.sesa.los.client.Images
 import nz.org.sesa.los.client.util._
 
 import dispatch._, Defaults._
@@ -15,7 +14,7 @@ import scala.reflect.runtime.universe.{TypeTag, typeOf}
 class Chest(val id : Int) extends Feature {
     def name = "chest"
     def examine = "It's a sturdy wooden chest. You can open it."
-    def image = Images.Chest
+    def image = io.Source.fromInputStream(this.getClass.getResourceAsStream("/images/chest.txt")).mkString
 
     def action[T : TypeTag](args: Any*) = () match {
         case _ if args.length > 0 => {

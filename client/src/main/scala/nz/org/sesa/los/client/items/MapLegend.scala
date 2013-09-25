@@ -3,7 +3,6 @@ package nz.org.sesa.los.client.items
 import nz.org.sesa.los.client.Adventurer
 import nz.org.sesa.los.client.Item
 import nz.org.sesa.los.client.util._
-import nz.org.sesa.los.client.Images
 
 import net.liftweb.json
 
@@ -43,7 +42,7 @@ private object MapLegend {
 class MapLegend(val id: Int, val owner : Adventurer) extends Item {
     def name = "map legend"
     def examine = "It's a torn off piece of paper, with some kind of map legend on it."
-    def image = Images.Paper
+    def image = io.Source.fromInputStream(this.getClass.getResourceAsStream("/images/legend.txt")).mkString
 
     override def remoting : Boolean = false
     def action[T : TypeTag](args: Any*) = () match {

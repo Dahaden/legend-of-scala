@@ -3,7 +3,6 @@ package nz.org.sesa.los.client.items
 import nz.org.sesa.los.client.Adventurer
 import nz.org.sesa.los.client.Global
 import nz.org.sesa.los.client.Position
-import nz.org.sesa.los.client.Images
 import nz.org.sesa.los.client.Item
 import nz.org.sesa.los.client.util._
 
@@ -52,7 +51,7 @@ object Map {
 class Map(val id : Int, val owner : Adventurer) extends Item {
     def name = "map"
     def examine = "It's a map, but the legend is missing."
-    def image = Images.Map
+    def image = io.Source.fromInputStream(this.getClass.getResourceAsStream("/images/map.txt")).mkString
 
     def action[T : TypeTag](args: Any*) = () match {
         case _ if !(typeOf[T] =:= typeOf[List[Map.Tile]]) => {

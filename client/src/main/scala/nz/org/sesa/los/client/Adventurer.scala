@@ -102,14 +102,11 @@ ${Vision.FlavorText.getOrElse(terrain, "???")}
 
 $possibleExits
 
-${Display.StartHilight}.features =${Display.Reset}
-${features}
+${Display.StartHilight}.features =${Display.Reset} ${features}
 
-${Display.StartHilight}.monsters =${Display.Reset}
-${List()}
+${Display.StartHilight}.monsters =${Display.Reset} ${List()}
 
-${Display.StartHilight}.adventurers =${Display.Reset}
-${adventurers}
+${Display.StartHilight}.adventurers =${Display.Reset} ${adventurers}
 """
         }
     }
@@ -118,7 +115,7 @@ ${adventurers}
         println(s"""
 ${Display.StartHilight}Hello, Adventurer $name, and welcome to...${Display.Reset}
 
-${Images.LogoSplash}
+${io.Source.fromInputStream(this.getClass.getResourceAsStream("/images/splash.txt")).mkString}
  * Why don't you start off by ${Display.fg(34)}.look${Display.Reset}ing around?
 
  * Or maybe checking your ${Display.fg(34)}.inventory${Display.Reset}?
@@ -253,7 +250,7 @@ case class Adventurer private(private val id : Int, val name : String,
 ${Display.StartHilight}$name the $title${Display.Reset}
 ${Display.StartHilight}.level =${Display.Reset} $level
 
-${Display.Bold}${Display.fg(196)}.hp =${Display.Reset} $hp/$maxHp
-${Display.Bold}${Display.fg(226)}.xp =${Display.Reset} $xp/$maxXp
+${Display.Bold}${Display.fg(196)}.hp =${Display.Reset} $hp / $maxHp
+${Display.Bold}${Display.fg(226)}.xp =${Display.Reset} $xp / $maxXp
 """
 }
