@@ -13,6 +13,7 @@ import net.liftweb.json.JsonDSL._
 
 import scala.concurrent._
 import scala.concurrent.duration._
+import scala.reflect.runtime.universe.{TypeTag, typeTag}
 
 object Map {
     case class Tile(val pos : Position, val terrain : String, val features : List[String]) {
@@ -53,8 +54,8 @@ class Map(val id : Int, val owner : Adventurer) extends Item {
     def examine = "It's a map, but the legend is missing."
     def image = Images.Map
 
-    def action[T : Manifest](args: Any*) = () match {
-        case _ if manifest[T] != manifest[List[Map.Tile]] => {
+    def action[T : TypeTag](args: Any*) = () match {
+        case _ if typeTag[T] != typeTag[List[Map.Tile]] => {
             Display.show("It seems like this item needs to be used to find a List of Tiles.")
             None
         }

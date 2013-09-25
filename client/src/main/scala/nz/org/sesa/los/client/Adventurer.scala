@@ -80,7 +80,7 @@ object Adventurer {
     /**
      * A vision, obtained when using me.look.
      */
-    case class Vision(val pos : Position, val terrain : String, val exits : List[Boolean], val features_ : List[Feature.RemoteHandle]) {
+    case class Vision(val pos : Position, val terrain : String, val exits : List[Boolean], features_ : List[Feature.RemoteHandle], adventurers : List[String]) {
         val features = features_.map(_.deserialize)
 
         override def toString = {
@@ -88,7 +88,7 @@ object Adventurer {
                 .filter({case (canExit, _) => canExit})
                 .map({case (_, dir) => s"${Display.fg(34)}$dir${Display.Reset}"})
 
-            val possibleExists = directions.length match {
+            val possibleExits = directions.length match {
                 case 0 => "You're trapped!"
                 case 1 => s"You can only move ${directions(0)} from here."
                 case _ => s"You can move ${directions.init.mkString(", ")} or ${directions.last} from here."
@@ -98,7 +98,7 @@ object Adventurer {
 ${Display.StartHilight}${Vision.FriendlyTerrainNane.get(terrain).head} (${pos.x}, ${pos.y})${Display.Reset}
 ${Vision.FlavorText.get(terrain).head}
 
-$possibleExists
+$possibleExits
 
 ${Display.StartHilight}Features of Interest${Display.Reset}
 ${features}
@@ -107,8 +107,7 @@ ${Display.StartHilight}Monsters${Display.Reset}
 No monsters.
 
 ${Display.StartHilight}Other Adventurers${Display.Reset}
-Nobody here.
-
+${if (adventurers.length > 0) "\n" + adventurers.map({n => " * " + n}).mkString("\n\n") else "Nobody else here."}
 """
         }
     }

@@ -16,7 +16,10 @@ PREFIXES = [
     "radiant",
     "dark",
     "ultra",
-    "pwn"
+    "pwn",
+    "alpha",
+    "omega",
+    "delta"
 ]
 
 SUFFIXES = [

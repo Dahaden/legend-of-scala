@@ -8,6 +8,7 @@ import net.liftweb.json.Serialization._
 
 import scala.concurrent._
 import scala.concurrent.duration._
+import scala.reflect.runtime.universe.{TypeTag, typeTag}
 
 object Item {
     /**
@@ -35,9 +36,9 @@ trait Item {
 
     def remoting : Boolean = true
 
-    def use[T : Manifest] : Option[T] = this.use()
+    def use[T : TypeTag] : Option[T] = this.use()
 
-    def use[T : Manifest](args: Any*) : Option[T] = {
+    def use[T : TypeTag](args: Any*) : Option[T] = {
         if (!this.remoting) {
             return this.action(args: _*)
         }
@@ -62,7 +63,7 @@ trait Item {
         }
     }
 
-    protected def action[T : Manifest](args: Any*) : Option[T]
+    protected def action[T : TypeTag](args: Any*) : Option[T]
 
     override def toString = {
         val imageLines = this.image.split("\n")

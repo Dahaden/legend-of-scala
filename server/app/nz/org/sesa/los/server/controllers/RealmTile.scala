@@ -139,6 +139,8 @@ object RealmTile extends Controller {
                     })) ~
                     ("adventurers" -> getAdventurers(realmName, x, y).map({ row =>
                         row[String]("name")
+                    }).filter({ name =>
+                        adventurerName.fold {true} (_ != name)
                     })) ~
                     ("pos" ->
                         ("x" -> x) ~

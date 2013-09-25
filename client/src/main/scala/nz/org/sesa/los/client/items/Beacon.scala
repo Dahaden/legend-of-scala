@@ -11,6 +11,7 @@ import net.liftweb.json.JsonDSL._
 
 import scala.concurrent._
 import scala.concurrent.duration._
+import scala.reflect.runtime.universe.{TypeTag, typeTag}
 
 object Beacon {
     case class Signal(val pos : Position, val name : String, val kind : String) {
@@ -27,8 +28,8 @@ class Beacon(val id : Int, val owner : Adventurer) extends Item {
     def examine = "It's some kind of glowing gem with weird glyphs on it. You can use it to find things on the map."
     def image = Images.Beacon
 
-    def action[T : Manifest](args: Any*) = () match {
-        case _ if manifest[T] != manifest[List[Beacon.Signal]] => {
+    def action[T : TypeTag](args: Any*) = () match {
+        case _ if typeTag[T] != typeTag[List[Beacon.Signal]] => {
             Display.show("It looks like you can use the beacon to find a List of Signals.")
             None
         }
