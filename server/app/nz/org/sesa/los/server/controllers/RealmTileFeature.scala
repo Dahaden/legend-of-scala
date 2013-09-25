@@ -7,6 +7,7 @@ import play.api.db._
 import play.api.mvc._
 import net.liftweb.json
 import net.liftweb.json.JsonDSL._
+import java.sql.Connection
 
 import nz.org.sesa.los.server.models
 import nz.org.sesa.los.server.Position
@@ -29,14 +30,24 @@ object RealmTileFeature extends Controller {
                         ).execute()
                     }
 
-                    Ok(json.pretty(json.render(
-                        ("why" -> s"Whoosh! Your surroundings disappear as you hurtle through the portal into a new realm.")
-                    ))).as("application/json")
+                    true
                 }
-                case None => BadRequest(json.pretty(json.render(
-                    ("why" -> s"Bad teleport target.")
-                ))).as("application/json")
+                case None => false
             }
+        }
+
+        // XXX: this is silly, but whatever
+        def unpackChest(adventurer : Row, items : json.JArray)(implicit c : Connection) = {
+            implicit val formats = json.DefaultFormats
+
+            for {
+                item <- items.arr
+            } SQL("""INSERT INTO items (kind, owner_id, attrs)
+                     VALUES ({kind}, {ownerId}, {attrs})""").on(
+                "kind" -> (item \ "kind").extract[String],
+                "ownerId" -> adventurer[Int]("id"),
+                "attrs" -> json.pretty(json.render(item \ "attrs"))
+            ).execute()
         }
     }
 
@@ -116,7 +127,17 @@ object RealmTileFeature extends Controller {
                             behavior match {
                                 case "portal" => {
                                     adventurerOption match {
-                                        case Some(adventurer) => RemoteOnlyBehaviors.teleport(adventurer, (attrs \ "target").extract[Position])
+                                        case Some(adventurer) => {
+                                            if (RemoteOnlyBehaviors.teleport(adventurer, (attrs \ "target").extract[Position])) {
+                                                Ok(json.pretty(json.render(
+                                                    ("why" -> s"Whoosh! Your surroundings disappear as you hurtle through the portal into a new realm.")
+                                                ))).as("application/json")
+                                            } else {
+                                                BadRequest(json.pretty(json.render(
+                                                    ("why" -> s"Teleport failed?")
+                                                ))).as("application/json")
+                                            }
+                                        }
                                         case None => BadRequest(json.pretty(json.render(
                                             ("why" -> s"Need adventurer.")
                                         ))).as("application/json")
@@ -124,10 +145,26 @@ object RealmTileFeature extends Controller {
                                 }
 
                                 case "chest" => {
-                                    // TODO: implement
-                                    BadRequest(json.pretty(json.render(
-                                        ("why" -> s"NOT IMPLEMENTED")
-                                    ))).as("application/json")
+                                    adventurerOption match {
+                                        case Some(adventurer) => {
+                                            DB.withTransaction { implicit c =>
+                                                SQL("""DELETE FROM features
+                                                       WHERE id = {featureId}""").on(
+                                                    "featureId" -> featureId
+                                                ).execute
+
+                                                RemoteOnlyBehaviors.unpackChest(adventurer, (attrs \ "items").extract[json.JArray])
+                                            }
+
+                                            // XXX: yuck, we have to do this
+                                            Ok(json.pretty(json.render(
+                                                ("why" -> s"You open the chest and find some items.")
+                                            ))).as("application/json")
+                                        }
+                                        case None => BadRequest(json.pretty(json.render(
+                                            ("why" -> s"Need adventurer.")
+                                        ))).as("application/json")
+                                    }
                                 }
                             }
                         }

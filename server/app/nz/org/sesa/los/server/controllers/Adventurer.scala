@@ -67,10 +67,10 @@ object Adventurer extends Controller {
                     ("behavior" -> "chest") ~
                     ("items" -> List(
                         (
-                            ("name" -> "weapon") ~
+                            ("kind" -> "weapon") ~
                             ("attrs" -> (
                                 ("material" -> "wood") ~
-                                ("type" -> "sword")
+                                ("class" -> "sword")
                             ))
                         )
                     ))
