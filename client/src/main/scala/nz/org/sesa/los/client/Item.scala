@@ -67,7 +67,6 @@ trait Item {
 
     override def toString = s"""
 ${this.image}
-
-${Display.StartHilight}.name = ${this.name}${Display.Reset}
+${Display.StartHilight}.name =${Display.Reset} ${this.name}
 """
 }

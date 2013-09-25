@@ -33,6 +33,6 @@ trait Feature {
 
     override def toString = s"""
 ${this.image}
-${Display.StartHilight}.name${Display.Reset} = ${this.name}
+${Display.StartHilight}.name =${Display.Reset} ${this.name}
 """
 }
