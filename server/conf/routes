@@ -1,8 +1,8 @@
 GET     /                                                   nz.org.sesa.los.server.controllers.Application.index
 GET     /realms/:realmName                                  nz.org.sesa.los.server.controllers.Realm.view(realmName: String)
-GET     /realms/:realmName/:x,:y                            nz.org.sesa.los.server.controllers.RealmTile.view(realmName: String, x: Int, y: Int, adventurerName : Option[String])
+GET     /realms/:realmName/:x,:y                            nz.org.sesa.los.server.controllers.RealmTile.view(realmName: String, x: Int, y: Int)
 GET     /realms/:realmName/:x,:y/features/:featureId        nz.org.sesa.los.server.controllers.RealmTileFeature.view(realmName: String, x: Int, y: Int, featureId : Int)
-POST    /realms/:realmName/:x,:y/features/:featureId        nz.org.sesa.los.server.controllers.RealmTileFeature.use(realmName: String, x: Int, y: Int, featureId : Int, adventurerName : Option[String])
+POST    /realms/:realmName/:x,:y/features/:featureId        nz.org.sesa.los.server.controllers.RealmTileFeature.use(realmName: String, x: Int, y: Int, featureId : Int)
 GET     /adventurers                                        nz.org.sesa.los.server.controllers.Adventurer.index
 POST    /adventurers                                        nz.org.sesa.los.server.controllers.Adventurer.create
 GET     /adventurers/:adventurerName                        nz.org.sesa.los.server.controllers.Adventurer.view(adventurerName: String)

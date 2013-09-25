@@ -23,9 +23,11 @@ object Map {
 
     // cache tiles (we're never going to need to update this once we have them)
     lazy val world : List[Tile] = {
+        var http = new Http()
         // load the map tiles on first use of the map
         val req = :/(Global.ServerAddress) / "realms" / "world"
-        val js = json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody())
+        val js = json.parse(Await.result(http(req), Duration.Inf).getResponseBody())
+        http.shutdown()
 
         implicit val formats = json.DefaultFormats
 

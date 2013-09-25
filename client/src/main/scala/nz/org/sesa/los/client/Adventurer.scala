@@ -132,8 +132,8 @@ ${io.Source.fromInputStream(this.getClass.getResourceAsStream("/images/splash.tx
 """)
     }
 
-    def login(name : String) = {
-        val adventurer = new Adventurer(name)
+    def login(name : String, token : String) = {
+        val adventurer = new Adventurer(name, token)
         if (adventurer.refresh) {
             greet(adventurer.name)
             adventurer
@@ -143,7 +143,7 @@ ${io.Source.fromInputStream(this.getClass.getResourceAsStream("/images/splash.tx
     }
 }
 
-case class Adventurer private(val name : String) {
+case class Adventurer private(val name : String, token : String) {
     def level : Int = rh.level
     def pos : Position = rh.pos
 
@@ -155,12 +155,14 @@ case class Adventurer private(val name : String) {
 
     private var rh : Adventurer.RemoteHandle = null
 
+    val http = new Http()
+
     def refresh : Boolean = {
         val req = :/(Global.ServerAddress) / "adventurers" / this.name
 
         implicit val formats = json.DefaultFormats
 
-        val resp = Await.result(Global.http(req), Duration.Inf)
+        val resp = Await.result(this.http(req), Duration.Inf)
         val js = json.parse(resp.getResponseBody())
 
         resp.getStatusCode() match {
@@ -213,16 +215,16 @@ case class Adventurer private(val name : String) {
 
         implicit val formats = json.DefaultFormats
 
-        json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody())
+        json.parse(Await.result(this.http(req), Duration.Inf).getResponseBody())
             .extract[List[Item.RemoteHandle]].map(_.deserialize(this))
     }
 
     def look = {
-        val req = :/(Global.ServerAddress) / "realms" / pos.realm / (pos.x.toString + "," + pos.y.toString) <<? Map("adventurerName" -> name)
+        val req = (:/(Global.ServerAddress) / "realms" / pos.realm / (pos.x.toString + "," + pos.y.toString)).as_!(name, token)
 
         implicit val formats = json.DefaultFormats
 
-        var js = json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody())
+        var js = json.parse(Await.result(this.http(req), Duration.Inf).getResponseBody())
 
         new Adventurer.Vision(js.extract[Adventurer.VisionHandle], this)
     }
@@ -234,7 +236,7 @@ case class Adventurer private(val name : String) {
 
         implicit val formats = json.DefaultFormats
 
-        val resp = Await.result(Global.http(req), Duration.Inf)
+        val resp = Await.result(this.http(req), Duration.Inf)
         val js = json.parse(resp.getResponseBody())
 
         resp.getStatusCode() match {

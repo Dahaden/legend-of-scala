@@ -18,7 +18,7 @@ package object los {
         override def prompt = s"${Display.fg(196)}scala>${Display.Reset} "
     }
 
-    val login = Adventurer.login(_)
+    val login = Adventurer.login(_, _)
 
     val Markers = util.Markers
     val Features = util.Features

@@ -9,6 +9,7 @@ import net.liftweb.json
 import net.liftweb.json.JsonDSL._
 import java.sql.Connection
 
+import nz.org.sesa.los.server.util
 import nz.org.sesa.los.server.models
 import nz.org.sesa.los.server.Position
 
@@ -95,10 +96,10 @@ object RealmTileFeature extends Controller {
         }
     }
 
-    def use(realmName : String, x : Int, y : Int, featureId : Int, adventurerName : Option[String]) = Action { request =>
+    def use(realmName : String, x : Int, y : Int, featureId : Int) = Action(parse.tolerantText) { request =>
         val adventurerOption = for {
-            name <- adventurerName
-            row <- models.Adventurer.getRow(name)
+            (username, password) <- util.getBasicAuth(request)
+            row <- models.Adventurer.getAuthRow(username, password)
         } yield row
 
         this.getRow(realmName, x, y, featureId) match {

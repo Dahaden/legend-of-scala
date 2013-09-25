@@ -38,11 +38,13 @@ class RemoteOnlyFeature(val id : Int, val behavior : String, val bindee : Advent
         }
 
         case _ => {
-            val req = :/(Global.ServerAddress) / "realms" / bindee.pos.realm / (bindee.pos.x.toString + "," + bindee.pos.y.toString) / "features" / this.id <<? Map("adventurerName" -> bindee.name) << ""
+            val req = (:/(Global.ServerAddress) / "realms" / bindee.pos.realm /
+                (bindee.pos.x.toString + "," + bindee.pos.y.toString) /
+                "features" / this.id << "").as_!(bindee.name, bindee.token)
 
             implicit val formats = json.DefaultFormats
 
-            val resp = Await.result(Global.http(req), Duration.Inf)
+            val resp = Await.result(bindee.http(req), Duration.Inf)
             var js = json.parse(resp.getResponseBody())
 
             Display.show((js \ "why").extract[String])

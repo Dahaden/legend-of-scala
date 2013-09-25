@@ -46,6 +46,7 @@ object Adventurer extends Controller {
         implicit val formats = json.DefaultFormats
 
         val name = (js \ "name").extract[String]
+        val token = (js \ "token").extract[String]
 
         DB.withTransaction { implicit c =>
             val w = 10
@@ -120,10 +121,11 @@ object Adventurer extends Controller {
             ).execute()
 
             // make adventurer
-            val id = SQL("""INSERT INTO adventurers(name, level, x, y, realm_id, hp, xp)
-                            VALUES ({name}, 1, {x}, {y}, {dungeonId}, 100, 0)
+            val id = SQL("""INSERT INTO adventurers(name, token, level, x, y, realm_id, hp, xp)
+                            VALUES ({name}, {token}, 1, {x}, {y}, {dungeonId}, 100, 0)
                          """).on(
                 "name" -> name,
+                "token" -> token,
                 "x" -> dsx,
                 "y" -> dsy,
                 "dungeonId" -> dungeonId

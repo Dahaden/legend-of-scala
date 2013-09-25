@@ -31,6 +31,33 @@ object Adventurer {
         }
     }
 
+    def getAuthRow(adventurerName : String, token : String) = {
+        DB.withConnection { implicit c =>
+            val rows = SQL("""SELECT adventurers.id AS id,
+                                     adventurers.name AS name,
+                                     adventurers.level AS level,
+                                     adventurers.x AS x,
+                                     adventurers.y AS y,
+                                     realms.name AS realm,
+                                     realms.w AS w,
+                                     realms.h AS h,
+                                     adventurers.hp AS hp,
+                                     adventurers.xp AS xp
+                              FROM adventurers, realms
+                              WHERE adventurers.realm_id = realms.id AND
+                                    adventurers.name = {name} AND
+                                    adventurers.token = {token}""").on(
+                "name" -> adventurerName,
+                "token" -> token
+            )
+
+            rows().toList match {
+                case Nil => None
+                case row::_ => Some(row)
+            }
+        }
+    }
+
     def moveDenialFor(adventurerRow : Row, tile : Realm.Tile) = {
         val monsters = Realm.getMonsters(adventurerRow[String]("realm"), adventurerRow[Int]("x"), adventurerRow[Int]("y"))
         if (monsters.length > 0) {

@@ -35,7 +35,7 @@ class Beacon(val id : Int, val owner : Adventurer) extends Item {
 
         case _ => {
             val req = :/(Global.ServerAddress) / "adventurers"
-            val json.JArray(js) = json.parse(Await.result(Global.http(req), Duration.Inf).getResponseBody())
+            val json.JArray(js) = json.parse(Await.result(owner.http(req), Duration.Inf).getResponseBody())
             implicit val formats = json.DefaultFormats
 
             Some((for { adventurer <- js } yield {

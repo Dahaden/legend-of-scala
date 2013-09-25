@@ -48,7 +48,7 @@ trait Item {
 
         implicit val formats = json.DefaultFormats
 
-        val resp = Await.result(Global.http(req), Duration.Inf)
+        val resp = Await.result(this.owner.http(req), Duration.Inf)
         var js = json.parse(resp.getResponseBody())
 
         resp.getStatusCode() match {

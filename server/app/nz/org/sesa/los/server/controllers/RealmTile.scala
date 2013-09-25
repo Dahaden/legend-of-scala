@@ -9,10 +9,11 @@ import net.liftweb.json
 import net.liftweb.json.JsonDSL._
 import net.liftweb.json.Extraction._
 
+import nz.org.sesa.los.server.util
 import nz.org.sesa.los.server.models
 
 object RealmTile extends Controller {
-    def view(realmName : String, x : Int, y : Int, adventurerName : Option[String]) = Action { request =>
+    def view(realmName : String, x : Int, y : Int) = Action { request =>
         models.Realm.getRow(realmName) match {
             case None => {
                 NotFound(json.pretty(json.render(
@@ -24,11 +25,15 @@ object RealmTile extends Controller {
                 val w = row[Int]("w")
                 val h = row[Int]("h")
 
-                val pred = adventurerName.fold { _ : models.Realm.Tile => true } { adventurerName =>
-                    models.Adventurer.getRow(adventurerName).fold { _ : models.Realm.Tile => false } { row =>
-                        !models.Adventurer.moveDenialFor(row, _).isDefined
-                    }
+                val adventurerOption = for {
+                    (username, password) <- util.getBasicAuth(request)
+                    row <- models.Adventurer.getAuthRow(username, password)
+                } yield row
+
+                val pred = adventurerOption.fold { _ : models.Realm.Tile => false } { row =>
+                    !models.Adventurer.moveDenialFor(row, _).isDefined
                 }
+
 
                 val exits = List(
                     (0, -1), // north
@@ -71,7 +76,7 @@ object RealmTile extends Controller {
                     ("adventurers" -> models.Realm.getAdventurers(realmName, x, y).map({ row =>
                         row[String]("name")
                     }).filter({ name =>
-                        adventurerName.fold {true} (_ != name)
+                        adventurerOption.fold {true} (adventurer => name != adventurer[String]("name"))
                     })) ~
                     ("pos" ->
                         ("x" -> x) ~

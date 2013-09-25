@@ -4,5 +4,4 @@ import dispatch._, Defaults._
 
 object Global {
     val ServerAddress = System.getenv("LOS_HOST")
-    val http = new Http()
 }
