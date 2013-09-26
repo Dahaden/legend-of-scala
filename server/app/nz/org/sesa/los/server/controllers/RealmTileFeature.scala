@@ -22,7 +22,10 @@ object RealmTileFeature extends Controller {
                         SQL("""UPDATE adventurers
                                SET x = {x},
                                    y = {y},
-                                   realm_id = {realmId}
+                                   realm_id = {realmId},
+                                   spawn_x = {x},
+                                   spawn_y = {y},
+                                   spawn_realm_id = {realmId}
                                WHERE id = {adventurerId}""").on(
                             "x" -> target.x,
                             "y" -> target.y,

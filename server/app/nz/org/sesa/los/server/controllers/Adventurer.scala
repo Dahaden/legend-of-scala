@@ -1,6 +1,7 @@
 package nz.org.sesa.los.server.controllers
 
 import nz.org.sesa.los.server.models
+import nz.org.sesa.los.server.util
 
 import anorm._
 import play.api.Play.current
@@ -82,8 +83,8 @@ object Adventurer extends Controller {
             ).execute()
 
             // make boss at end of dungeon
-            SQL("""INSERT INTO monsters(kind, level, drops, x, y, realm_id)
-                   VALUES ("ogre", 1, {drops}, {x}, {y}, {dungeonId})""").on(
+            SQL("""INSERT INTO monsters(kind, level, drops, hp, x, y, realm_id)
+                   VALUES ("ogre", 1, {drops}, 10, {x}, {y}, {dungeonId})""").on(
                 "drops" -> json.pretty(json.render(List(
                     ("name" -> "map"),
                     ("name" -> "map-legend"),
@@ -121,8 +122,8 @@ object Adventurer extends Controller {
             ).execute()
 
             // make adventurer
-            val id = SQL("""INSERT INTO adventurers(name, token, level, x, y, realm_id, hp, xp)
-                            VALUES ({name}, {token}, 1, {x}, {y}, {dungeonId}, 100, 0)
+            val id = SQL("""INSERT INTO adventurers(name, token, level, x, y, realm_id, spawn_x, spawn_y, spawn_realm_id, hp, xp)
+                            VALUES ({name}, {token}, 1, {x}, {y}, {dungeonId}, {x}, {y}, {dungeonId}, 100, 0)
                          """).on(
                 "name" -> name,
                 "token" -> token,
@@ -138,10 +139,22 @@ object Adventurer extends Controller {
     }
 
     def view(adventurerName : String) = Action { request =>
+        val auth = util.getBasicAuth(request)
+
+        val adventurerOption = for {
+            (username, password) <- auth
+            row <- models.Adventurer.getAuthRow(username, password)
+        } yield row
+
         models.Adventurer.getRow(adventurerName) match {
             case None => {
                 NotFound(json.pretty(json.render(
                     ("why" -> s"Sorry, but you, $adventurerName, are not an adventurer.")
+                ))).as("application/json")
+            }
+            case Some(_) if auth.isDefined && !adventurerOption.isDefined => {
+                Unauthorized(json.pretty(json.render(
+                    ("why" -> s"Oops, your token was wrong.")
                 ))).as("application/json")
             }
             case Some(row) => {
@@ -162,10 +175,20 @@ object Adventurer extends Controller {
     }
 
     def move(adventurerName : String) = Action(parse.tolerantText) { request =>
-        models.Adventurer.getRow(adventurerName) match {
+        val adventurerOption = for {
+            (username, password) <- util.getBasicAuth(request)
+            row <- models.Adventurer.getAuthRow(username, password)
+        } yield row
+
+        adventurerOption match {
             case None => {
                 NotFound(json.pretty(json.render(
                     ("why" -> s"Sorry, but you, $adventurerName, are not an adventurer.")
+                ))).as("application/json")
+            }
+            case Some(row) if row[String]("name") != adventurerName => {
+                Unauthorized(json.pretty(json.render(
+                    ("why" -> s"Can't move someone else.")
                 ))).as("application/json")
             }
             case Some(row) => {

@@ -158,7 +158,7 @@ case class Adventurer private(val name : String, token : String) {
     val http = new Http()
 
     def refresh : Boolean = {
-        val req = :/(Global.ServerAddress) / "adventurers" / this.name
+        val req = (:/(Global.ServerAddress) / "adventurers" / this.name).as_!(name, token)
 
         implicit val formats = json.DefaultFormats
 
@@ -171,7 +171,7 @@ case class Adventurer private(val name : String, token : String) {
                 true
             }
 
-            case 404 => {
+            case 404 | 401 => {
                 Display.show((js \ "why").extract[String])
                 false
             }
@@ -230,9 +230,9 @@ case class Adventurer private(val name : String, token : String) {
     }
 
     def move(direction : String) = {
-        val req = :/(Global.ServerAddress) / "adventurers" / name / "move" << json.pretty(json.render(
+        val req = (:/(Global.ServerAddress) / "adventurers" / name / "move" << json.pretty(json.render(
             "direction" -> direction.toLowerCase
-        ))
+        ))).as_!(name, token)
 
         implicit val formats = json.DefaultFormats
 
