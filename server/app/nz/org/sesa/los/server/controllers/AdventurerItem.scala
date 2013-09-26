@@ -78,6 +78,8 @@ object AdventurerItem extends Controller {
                 ("why" -> s"You try to combine an item... with itself?")
             ))).as("application/json")
         } else {
+            // TODO: implement combine recipes
+
             BadRequest(json.pretty(json.render(
                 ("why" -> s"You try to combine the items, but don't quite manage.")
             ))).as("application/json")
@@ -87,6 +89,8 @@ object AdventurerItem extends Controller {
 
     def separate(adventurerName : String, itemId : Int) = Action { request =>
         BadRequest(json.pretty(json.render(
+            // TODO: implement separations, probably from combines
+
             ("why" -> s"Can't separate this item.")
         ))).as("application/json")
     }
