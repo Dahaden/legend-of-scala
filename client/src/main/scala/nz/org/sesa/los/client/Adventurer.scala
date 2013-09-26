@@ -194,6 +194,9 @@ class Adventurer private(val name : String, val token : String) {
     }
 
     def look = {
+        // In case we're stale.
+        this.refresh
+
         val req = (:/(Global.ServerAddress) / "realms" / pos.realm / (pos.x.toString + "," + pos.y.toString)).as_!(name, token)
 
         implicit val formats = json.DefaultFormats
