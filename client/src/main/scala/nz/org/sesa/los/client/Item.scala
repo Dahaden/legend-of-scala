@@ -17,10 +17,13 @@ object Item {
      */
     case class RemoteHandle(id : Int, kind : String, owner : String, attrs : json.JObject) {
         def deserialize(owner : Adventurer) = {
+            implicit val formats = json.DefaultFormats
+
             kind match {
                 case "map"          => new items.Map(id, owner)
                 case "map-legend"   => new items.MapLegend(id, owner)
                 case "beacon"       => new items.Beacon(id, owner)
+                case "weapon"       => new items.Weapon(id, owner, (attrs \ "material").extract[String], (attrs \ "class").extract[String])
             }
         }
     }
