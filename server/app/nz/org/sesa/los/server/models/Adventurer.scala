@@ -77,6 +77,7 @@ object Adventurer {
         }
     }
 
+    /// XXX: this type signature is ridiculous, like, really
     def moveDenialFor(pos : Position, target : Realm.Tile) = {
         val monsters = Realm.getMonsters(pos.realm, pos.x, pos.y)
         if (monsters.length > 0) {
