@@ -278,7 +278,7 @@ case class Adventurer private(val name : String, token : String) {
 
         resp.getStatusCode() match {
             case 400 => {
-                Display.show(s"You try to pull the ${item.name} apart, but it doesn't budge")
+                Display.show(s"You try to pull the ${item.name} apart, but it doesn't budge.")
                 List()
             }
             case 200 => {
