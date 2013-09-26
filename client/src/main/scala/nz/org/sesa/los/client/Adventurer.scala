@@ -274,6 +274,6 @@ class Adventurer private(val name : String, val token : String) {
 
     override def toString = s"""
 ${Display.StartHilight}.name =${Display.Reset} ${name}
-${Display.Bold}${Display.fg(196)}.hearts = {(0 until this.hearts).map({_ => "♥"}).mkString(" ")}${Display.Reset} ${(this.hearts until this.maxHearts).map({_ => "♡"}).mkString(" ")}
+${Display.Bold}${Display.fg(196)}.hearts = ${(0 until this.hearts).map({_ => "♥"}).mkString(" ")}${Display.Reset} ${(this.hearts until this.maxHearts).map({_ => "♡"}).mkString(" ")}
 """
 }
