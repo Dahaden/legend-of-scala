@@ -54,6 +54,27 @@ object Adventurer {
         }
     }
 
+    def getItem(itemId : Int, owner : String) = {
+        DB.withConnection { implicit c =>
+            val rows = SQL("""SELECT items.id AS id,
+                                     items.kind AS kind,
+                                     items.attrs AS attrs,
+                                     adventurers.name AS owner
+                               FROM items, adventurers
+                               WHERE items.id = {id} AND
+                                     items.owner_id = adventurers.id AND
+                                     adventurers.name = {owner}""").on(
+                "id" -> itemId,
+                "owner" -> owner
+            )
+
+            rows().toList match {
+                case Nil => None
+                case row::_ => Some(row)
+            }
+        }
+    }
+
     def moveDenialFor(adventurerRow : Row, tile : Realm.Tile) = {
         val monsters = Realm.getMonsters(adventurerRow[String]("realm"), adventurerRow[Int]("x"), adventurerRow[Int]("y"))
         if (monsters.length > 0) {
