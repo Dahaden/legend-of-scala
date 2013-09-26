@@ -17,26 +17,22 @@ object Adventurer extends Controller {
         DB.withConnection { implicit c =>
             val rows = SQL("""SELECT adventurers.id AS id,
                                      adventurers.name AS name,
-                                     adventurers.level AS level,
                                      adventurers.x AS x,
                                      adventurers.y AS y,
                                      realms.name AS realm,
-                                     adventurers.hp AS hp,
-                                     adventurers.xp AS xp
+                                     adventurers.hearts AS hearts,
                               FROM adventurers, realms
                               WHERE adventurers.realm_id = realms.id""")
 
             Ok(json.pretty(json.render(rows().map { row =>
                 ("id"   -> row[Int]("id")) ~
                 ("name" -> row[String]("name")) ~
-                ("level"-> row[Int]("level")) ~
                 ("pos" ->
                     ("x"    -> row[Int]("x")) ~
                     ("y"    -> row[Int]("y")) ~
                     ("realm" -> row[String]("realm"))
                 ) ~
-                ("hp"   -> row[Int]("hp")) ~
-                ("xp"   -> row[Int]("xp"))
+                ("hearts"-> row[Int]("hearts"))
             }))).as("application/json")
         }
     }
@@ -83,8 +79,8 @@ object Adventurer extends Controller {
             ).execute()
 
             // make boss at end of dungeon
-            SQL("""INSERT INTO monsters(kind, level, drops, hp, x, y, realm_id)
-                   VALUES ("ogre", 1, {drops}, 10, {x}, {y}, {dungeonId})""").on(
+            SQL("""INSERT INTO monsters(kind, drops, hearts, x, y, realm_id)
+                   VALUES ("ogre", {drops}, 2, {x}, {y}, {dungeonId})""").on(
                 "drops" -> json.pretty(json.render(List(
                     ("name" -> "map"),
                     ("name" -> "map-legend"),
@@ -122,8 +118,8 @@ object Adventurer extends Controller {
             ).execute()
 
             // make adventurer
-            val id = SQL("""INSERT INTO adventurers(name, token, level, x, y, realm_id, spawn_x, spawn_y, spawn_realm_id, hp, xp)
-                            VALUES ({name}, {token}, 1, {x}, {y}, {dungeonId}, {x}, {y}, {dungeonId}, 100, 0)
+            val id = SQL("""INSERT INTO adventurers(name, token, x, y, realm_id, spawn_x, spawn_y, spawn_realm_id, hearts)
+                            VALUES ({name}, {token}, {x}, {y}, {dungeonId}, {x}, {y}, {dungeonId}, 10)
                          """).on(
                 "name" -> name,
                 "token" -> token,
@@ -161,14 +157,12 @@ object Adventurer extends Controller {
                 Ok(json.pretty(json.render(
                     ("id"    -> row[Int]("id")) ~
                     ("name"  -> row[String]("name")) ~
-                    ("level" -> row[Int]("level")) ~
                     ("pos" ->
                         ("x"    -> row[Int]("x")) ~
                         ("y"    -> row[Int]("y")) ~
                         ("realm" -> row[String]("realm"))
                     ) ~
-                    ("hp"    -> row[Int]("hp")) ~
-                    ("xp"    -> row[Int]("xp"))
+                    ("hearts"-> row[Int]("hearts"))
                 ))).as("application/json")
             }
         }

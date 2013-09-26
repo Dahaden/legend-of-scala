@@ -11,9 +11,7 @@ CREATE TABLE adventurers(
     spawn_y INTEGER NOT NULL,
     spawn_realm_id INTEGER NOT NULL,
 
-    hp INTEGER NOT NULL,
-    xp INTEGER NOT NULL,
-    level INTEGER NOT NULL,
+    hearts INTEGER NOT NULL,
 
     FOREIGN KEY(realm_id) REFERENCES realms(id),
     FOREIGN KEY(spawn_realm_id) REFERENCES spawn_realms(id)
@@ -54,10 +52,10 @@ CREATE TABLE monsters(
     x INTEGER NOT NULL,
     y INTEGER NOT NULL,
     realm_id INTEGER NOT NULL,
-    hp INTEGER NOT NULL,
+
+    hearts INTEGER NOT NULL,
 
     kind VARCHAR(255),
-    level INTEGER NOT NULL,
     drops TEXT NOT NULL,
 
     FOREIGN KEY(realm_id) REFERENCES realms(id)

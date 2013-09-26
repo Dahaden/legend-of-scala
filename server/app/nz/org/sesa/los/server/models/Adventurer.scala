@@ -10,14 +10,12 @@ object Adventurer {
         DB.withConnection { implicit c =>
             val rows = SQL("""SELECT adventurers.id AS id,
                                      adventurers.name AS name,
-                                     adventurers.level AS level,
                                      adventurers.x AS x,
                                      adventurers.y AS y,
                                      realms.name AS realm,
                                      realms.w AS w,
                                      realms.h AS h,
-                                     adventurers.hp AS hp,
-                                     adventurers.xp AS xp
+                                     adventurers.hearts AS hearts
                               FROM adventurers, realms
                               WHERE adventurers.realm_id = realms.id AND
                                     adventurers.name = {name}""").on(
@@ -35,14 +33,12 @@ object Adventurer {
         DB.withConnection { implicit c =>
             val rows = SQL("""SELECT adventurers.id AS id,
                                      adventurers.name AS name,
-                                     adventurers.level AS level,
                                      adventurers.x AS x,
                                      adventurers.y AS y,
                                      realms.name AS realm,
                                      realms.w AS w,
                                      realms.h AS h,
-                                     adventurers.hp AS hp,
-                                     adventurers.xp AS xp
+                                     adventurers.hearts AS hearts
                               FROM adventurers, realms
                               WHERE adventurers.realm_id = realms.id AND
                                     adventurers.name = {name} AND

@@ -55,7 +55,7 @@ object Realm {
         DB.withConnection { implicit c =>
             val rows = SQL("""SELECT monsters.id AS id,
                                      monsters.kind AS kind,
-                                     monsters.level AS level,
+                                     monsters.hearts AS hearts,
                                      monsters.drops AS drops,
                                      monsters.x AS x,
                                      monsters.y as y,
@@ -78,12 +78,10 @@ object Realm {
         DB.withConnection { implicit c =>
             val rows = SQL("""SELECT adventurers.id AS id,
                                      adventurers.name AS name,
-                                     adventurers.level AS level,
                                      adventurers.x AS x,
                                      adventurers.y AS y,
                                      realms.name AS realm,
-                                     adventurers.hp AS hp,
-                                     adventurers.xp AS xp
+                                     adventurers.hearts AS hearts
                               FROM adventurers, realms
                               WHERE adventurers.realm_id = realms.id AND
                                     realms.name = {name} AND

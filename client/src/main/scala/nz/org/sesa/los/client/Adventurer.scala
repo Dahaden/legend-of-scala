@@ -10,7 +10,7 @@ import scala.concurrent._
 import scala.concurrent.duration._
 
 object Adventurer {
-    case class RemoteHandle(val id : Int, val name : String, var level : Int, var pos : Position, var hp : Int, var xp : Int)
+    case class RemoteHandle(val id : Int, val name : String, var pos : Position, var hearts : Int)
 
     object Vision {
         private val FriendlyTerrainNane = Map(
@@ -144,14 +144,10 @@ ${io.Source.fromInputStream(this.getClass.getResourceAsStream("/images/splash.tx
 }
 
 case class Adventurer private(val name : String, token : String) {
-    def level : Int = rh.level
     def pos : Position = rh.pos
 
-    def hp : Int = rh.hp
-    def xp : Int = rh.xp
-
-    def maxHp : Int = rh.level * 100
-    def maxXp : Int = rh.level * 100
+    def hearts : Int = rh.hearts
+    val maxHearts = 10
 
     private var rh : Adventurer.RemoteHandle = null
 
@@ -177,21 +173,6 @@ case class Adventurer private(val name : String, token : String) {
             }
         }
     }
-
-    def title : String =
-        if (level <= 5) {
-            "Wanderer"
-        } else if (level <= 10) {
-            "Vagrant"
-        } else if (level <= 20) {
-            "Traveler"
-        } else if (level <= 40) {
-            "Scout"
-        } else if (level <= 80) {
-            "Ranger"
-        } else {
-            "Hero"
-        }
 
     private var seenInventory = false
 
@@ -253,10 +234,7 @@ case class Adventurer private(val name : String, token : String) {
     }
 
     override def toString = s"""
-${Display.StartHilight}$name the $title${Display.Reset}
-${Display.StartHilight}.level =${Display.Reset} $level
-
-${Display.Bold}${Display.fg(196)}.hp =${Display.Reset} $hp / $maxHp
-${Display.Bold}${Display.fg(226)}.xp =${Display.Reset} $xp / $maxXp
+${Display.StartHilight}$name the Adventurer${Display.Reset}
+${Display.Bold}${Display.fg(196)}.hearts =${Display.Reset} ${Display.fg(196)}${(0 until this.hearts).map({_ => "♥"}).mkString(" ")}${Display.Reset} ${(this.hearts until this.maxHearts).map({_ => "♡"}).mkString(" ")}
 """
 }
