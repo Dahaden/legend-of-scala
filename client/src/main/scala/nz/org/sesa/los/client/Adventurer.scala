@@ -179,7 +179,7 @@ case class Adventurer private(val name : String, token : String) {
 
     def inventory = {
         if (!this.seenInventory) {
-            println(s"""${Display.StartHilight}Apparently, you're wearing a backpack. There's some stuff in it.${Display.Reset}
+            println(s"""${Display.StartHilight}Apparently, you're wearing a backpack.${Display.Reset}
 
  * You can retrieve things from it by number with ${Display.fg(34)}.inventory(i)${Display.Reset}.
 
