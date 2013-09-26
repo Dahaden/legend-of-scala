@@ -280,26 +280,6 @@ case class Adventurer private(val name : String, token : String) {
         }
     }
 
-    def separate(item : Item) : List[Item] = {
-        implicit val formats = json.DefaultFormats
-
-        val req = (:/(Global.ServerAddress) / "adventurers" / name / "items" / item.id.toString / "separate" << "").as_!(name, token)
-        val resp = Await.result(this.http(req), Duration.Inf)
-
-        val js = json.parse(resp.getResponseBody())
-
-        resp.getStatusCode() match {
-            case 400 => {
-                Display.show(s"You try to pull the ${item.name} apart, but it doesn't budge.")
-                List()
-            }
-            case 200 => {
-                Display.show(s"You pull apart the ${item.name}.")
-                this.inventory.filter {(js \ "item_ids").extract[List[Int]] contains _.id}
-            }
-        }
-    }
-
     override def toString = s"""
 ${Display.StartHilight}$name the Adventurer${Display.Reset}
 ${Display.Bold}${Display.fg(196)}.hearts =${Display.Reset} ${Display.fg(196)}${(0 until this.hearts).map({_ => "♥"}).mkString(" ")}${Display.Reset} ${(this.hearts until this.maxHearts).map({_ => "♡"}).mkString(" ")}

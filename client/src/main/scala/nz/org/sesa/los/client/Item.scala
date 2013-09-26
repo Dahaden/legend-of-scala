@@ -39,8 +39,6 @@ trait Item {
 
     def remoting : Boolean = true
 
-    def use[T : TypeTag] : Option[T] = this.use()
-
     def use[T : TypeTag](args: Any*) : Option[T] = {
         if (!this.remoting) {
             return this.action(args: _*)
@@ -67,6 +65,26 @@ trait Item {
     }
 
     protected def action[T : TypeTag](args: Any*) : Option[T]
+
+    def separate() : List[Item] = {
+        implicit val formats = json.DefaultFormats
+
+        val req = (:/(Global.ServerAddress) / "adventurers" / owner.name / "items" / this.id.toString / "separate" << "").as_!(owner.name, owner.token)
+        val resp = Await.result(owner.http(req), Duration.Inf)
+
+        val js = json.parse(resp.getResponseBody())
+
+        resp.getStatusCode() match {
+            case 400 => {
+                Display.show(s"You try to pull the ${this.name} apart, but it doesn't budge.")
+                List()
+            }
+            case 200 => {
+                Display.show(s"You pull apart the ${this.name}.")
+                owner.inventory.filter {(js \ "item_ids").extract[List[Int]] contains _.id}
+            }
+        }
+    }
 
     override def toString = s"""
 ${this.image}

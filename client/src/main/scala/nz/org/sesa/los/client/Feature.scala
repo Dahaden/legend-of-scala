@@ -23,8 +23,6 @@ trait Feature {
     def image : String
     def examine : String
 
-    def use[T : TypeTag] : Option[T] = this.use()
-
     def use[T : TypeTag](args: Any*) : Option[T] = {
         this.action(args: _*)
     }
