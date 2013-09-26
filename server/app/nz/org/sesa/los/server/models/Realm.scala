@@ -59,6 +59,7 @@ object Realm {
                                      monsters.drops AS drops,
                                      monsters.x AS x,
                                      monsters.y as y,
+                                     monsters.max_hearts AS max_hearts,
                                      realms.name AS realm
                               FROM monsters, realms
                               WHERE monsters.realm_id = realms.id AND

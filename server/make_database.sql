@@ -54,6 +54,7 @@ CREATE TABLE monsters(
     realm_id INTEGER NOT NULL,
 
     hearts INTEGER NOT NULL,
+    max_hearts INTEGER NOT NULL,
 
     kind VARCHAR(255),
     drops TEXT NOT NULL,
