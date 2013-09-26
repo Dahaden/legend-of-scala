@@ -84,7 +84,6 @@ object AdventurerItem extends Controller {
                 ("why" -> s"You try to combine the items, but don't quite manage.")
             ))).as("application/json")
         }
-
     }
 
     def separate(adventurerName : String, itemId : Int) = Action { request =>

@@ -9,11 +9,14 @@ SOUTH = 2
 WEST = 4
 EAST = 8
 
-MIN_FORKS = 5
-MAX_FORKS = 10
+WIDTH = 10
+HEIGHT = 10
 
-MIN_STRAYING = 1
-MAX_STRAYING = 5
+MIN_FORKS = 30
+MAX_FORKS = 50
+
+MIN_STRAYING = 5
+MAX_STRAYING = 10
 
 def generate_dungeon(width, height):
     n = width * height
@@ -163,9 +166,6 @@ def expand_dungeon(dungeon, width, height):
                 expanded[(y3 + 1) * width3 + (x3 + 2)] = "#"
 
     return expanded
-
-WIDTH = 10
-HEIGHT = 10
 
 d, e = generate_dungeon(WIDTH, HEIGHT)
 draw_dungeon(d, e, WIDTH, HEIGHT)
