@@ -233,6 +233,14 @@ case class Adventurer private(val name : String, token : String) {
         }
     }
 
+    def combine[T](mold : T) = {
+
+    }
+
+    def separate(item : Item) = {
+
+    }
+
     override def toString = s"""
 ${Display.StartHilight}$name the Adventurer${Display.Reset}
 ${Display.Bold}${Display.fg(196)}.hearts =${Display.Reset} ${Display.fg(196)}${(0 until this.hearts).map({_ => "♥"}).mkString(" ")}${Display.Reset} ${(this.hearts until this.maxHearts).map({_ => "♡"}).mkString(" ")}
