@@ -88,30 +88,21 @@ object Adventurer {
     case class Vision(val vh : VisionHandle, bindee : Adventurer) {
         val pos = vh.pos
         val terrain = vh.terrain
-        val exits = vh.exits
+        val exits = vh.exits.zip(Vision.Directions)
+                .filter({case (canExit, _) => canExit})
+                .map({case (_, dir) => dir})
 
         val features = vh.features.map(_.deserialize(bindee))
         val adventurers = vh.adventurers
         val monsters = vh.monsters
 
-        override def toString = {
-            val directions = exits.zip(Vision.Directions)
-                .filter({case (canExit, _) => canExit})
-                .map({case (_, dir) => s"${Display.fg(34)}$dir${Display.Reset}"})
-
-            val possibleExits = directions.length match {
-                case 0 => "You're trapped!"
-                case 1 => s"You can only move ${directions(0)} from here."
-                case _ => s"You can move ${directions.init.mkString(", ")} or ${directions.last} from here."
-            }
-
-            s"""
+        override def toString = s"""
 ${Display.StartHilight}${Vision.FriendlyTerrainNane.getOrElse(terrain, terrain)}${Display.Reset}
-${Display.StartHilight}.pos${Display.Reset} = $pos
+${Display.StartHilight}.pos =${Display.Reset} $pos
 
 ${Vision.FlavorText.getOrElse(terrain, "???")}
 
-$possibleExits
+${Display.StartHilight}.exits =${Display.Reset} List(${this.exits.map({dir => s"${Display.fg(34)}$dir${Display.Reset}"}).mkString(", ")})
 
 ${Display.StartHilight}.features =${Display.Reset} ${features}
 
@@ -119,7 +110,6 @@ ${Display.StartHilight}.monsters =${Display.Reset} ${monsters}
 
 ${Display.StartHilight}.adventurers =${Display.Reset} ${adventurers}
 """
-        }
     }
 
     private def greet(name : String) {
