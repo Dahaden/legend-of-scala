@@ -5,6 +5,8 @@ import play.api.Play.current
 import play.api._
 import play.api.db._
 
+import nz.org.sesa.los.server.Position
+
 object Adventurer {
     def getRow(adventurerName : String) = {
         DB.withConnection { implicit c =>
@@ -75,12 +77,12 @@ object Adventurer {
         }
     }
 
-    def moveDenialFor(adventurerRow : Row, tile : Realm.Tile) = {
-        val monsters = Realm.getMonsters(adventurerRow[String]("realm"), adventurerRow[Int]("x"), adventurerRow[Int]("y"))
+    def moveDenialFor(pos : Position, target : Realm.Tile) = {
+        val monsters = Realm.getMonsters(pos.realm, pos.x, pos.y)
         if (monsters.length > 0) {
             Some(if (monsters.length > 1) "Monsters block your path." else "A monster blocks your path.")
         } else {
-            tile.terrain match {
+            target.terrain match {
                 case "river" | "lake" | "ocean" => Some("You try to flap your wings like a bird to fly over the water, but fail miserably.")
                 case "lava" => Some("Um yeah, that's like, lava.")
                 case "impassable" => Some("You walk into the wall and, to nobody's surprise, it hurts.")

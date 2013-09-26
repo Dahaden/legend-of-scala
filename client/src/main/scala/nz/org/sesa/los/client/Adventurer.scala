@@ -86,15 +86,15 @@ object Adventurer {
      * A vision, obtained when using me.look.
      */
     case class Vision(val vh : VisionHandle, bindee : Adventurer) {
-        val pos = vh.pos
-        val terrain = vh.terrain
-        val exits = vh.exits.zip(Vision.Directions)
+        def pos = vh.pos
+        def terrain = vh.terrain
+        def exits = vh.exits.zip(Vision.Directions)
                 .filter({case (canExit, _) => canExit})
                 .map({case (_, dir) => dir})
 
-        val features = vh.features.map(_.deserialize(bindee))
-        val adventurers = vh.adventurers
-        val monsters = vh.monsters
+        def features = vh.features.map(_.deserialize(bindee))
+        def adventurers = vh.adventurers.filter(_ != bindee.name)
+        def monsters = vh.monsters
 
         override def toString = s"""
 ${Display.StartHilight}${Vision.FriendlyTerrainNane.getOrElse(terrain, terrain)}${Display.Reset}
@@ -108,7 +108,7 @@ ${Display.StartHilight}.features =${Display.Reset} ${features}
 
 ${Display.StartHilight}.monsters =${Display.Reset} ${monsters}
 
-${Display.StartHilight}.adventurers =${Display.Reset} ${adventurers}
+${Display.StartHilight}.adventurers =${Display.Reset} List(${adventurers.map({dir => s"${Display.fg(266)}$dir${Display.Reset}"}).mkString(", ")})
 """
     }
 
@@ -117,11 +117,11 @@ ${Display.StartHilight}.adventurers =${Display.Reset} ${adventurers}
 ${Display.StartHilight}Hello, Adventurer $name, and welcome to...${Display.Reset}
 
 ${io.Source.fromInputStream(this.getClass.getResourceAsStream("/images/splash.txt")).mkString}
- * Why don't you start off by ${Display.fg(34)}.look${Display.Reset}ing around?
+ * Why don't you start off by ${Display.StartHilight}.look${Display.Reset}ing around?
 
- * Or maybe checking your ${Display.fg(34)}.inventory${Display.Reset}?
+ * Or maybe checking your ${Display.StartHilight}.inventory${Display.Reset}?
 
- * If you're really adventurous, you can start ${Display.fg(34)}.move${Display.Reset}ing around in a cardinal direction, like ${Display.fg(34)}north${Display.Reset}.
+ * If you're really adventurous, you can start ${Display.StartHilight}.move${Display.Reset}ing around in a cardinal direction, like ${Display.fg(34)}north${Display.Reset}.
 """)
     }
 
@@ -173,15 +173,15 @@ class Adventurer private(val name : String, val token : String) {
         if (!this.seenInventory) {
             println(s"""${Display.StartHilight}Apparently, you're wearing a backpack.${Display.Reset}
 
- * You can retrieve things from it by number with ${Display.fg(34)}.inventory(i)${Display.Reset}.
+ * You can retrieve things from it by number with ${Display.StartHilight}.inventory(i)${Display.Reset}.
 
- * You can examine them with ${Display.fg(34)}.examine${Display.Reset}.
+ * You can examine them with ${Display.StartHilight}.examine${Display.Reset}.
 
- * Once you've taken something from it, you can use it with ${Display.fg(34)}.use()${Display.Reset}.
+ * Once you've taken something from it, you can use it with ${Display.StartHilight}.use()${Display.Reset}.
 
- * Sometimes using an item needs something else, like a word or another item. You can do ${Display.fg(34)}.use(other1, other2)${Display.Reset}.
+ * Sometimes using an item needs something else, like a word or another item. You can do ${Display.StartHilight}.use(other1, other2)${Display.Reset}.
 
- * Other times, items will tell you things but only if you know how to use them. You can do ${Display.fg(34)}.use[Result]()${Display.Reset} for these.
+ * Other times, items will tell you things but only if you know how to use them. You can do ${Display.StartHilight}.use[Result]()${Display.Reset} for these.
  """)
             this.seenInventory = true
         }
@@ -197,7 +197,7 @@ class Adventurer private(val name : String, val token : String) {
         // In case we're stale.
         this.refresh
 
-        val req = (:/(Global.ServerAddress) / "realms" / pos.realm / (pos.x.toString + "," + pos.y.toString)).as_!(name, token)
+        val req = :/(Global.ServerAddress) / "realms" / pos.realm / (pos.x.toString + "," + pos.y.toString)
 
         implicit val formats = json.DefaultFormats
 

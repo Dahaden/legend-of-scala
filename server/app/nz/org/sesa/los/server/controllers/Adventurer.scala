@@ -2,6 +2,7 @@ package nz.org.sesa.los.server.controllers
 
 import nz.org.sesa.los.server.models
 import nz.org.sesa.los.server.util
+import nz.org.sesa.los.server.Position
 
 import anorm._
 import play.api.Play.current
@@ -204,15 +205,19 @@ object Adventurer extends Controller {
                             case "southeast" => (1, 1)
                         }
 
-                        val x = row[Int]("x") + dx
-                        val y = row[Int]("y") + dy
+                        val ox = row[Int]("x")
+                        val oy = row[Int]("y")
                         val w = row[Int]("w")
+
+                        val x = ox + dx
+                        val y = oy + dy
+
                         val realm = row[String]("realm")
 
                         val i = y * w + x
-                        val tile = models.Realm.loadTiles(realm)(i)
+                        val target = models.Realm.loadTiles(realm)(i)
 
-                        models.Adventurer.moveDenialFor(row, tile) match {
+                        models.Adventurer.moveDenialFor(new Position(ox, oy, realm), target) match {
                             case Some(denial) => BadRequest(json.pretty(json.render(
                                 ("why" -> denial)
                             ))).as("application/json")

@@ -9,6 +9,7 @@ import net.liftweb.json
 import net.liftweb.json.JsonDSL._
 import net.liftweb.json.Extraction._
 
+import nz.org.sesa.los.server.Position
 import nz.org.sesa.los.server.util
 import nz.org.sesa.los.server.models
 
@@ -24,16 +25,6 @@ object RealmTile extends Controller {
             case Some(row) => {
                 val w = row[Int]("w")
                 val h = row[Int]("h")
-
-                val adventurerOption = for {
-                    (username, password) <- util.getBasicAuth(request)
-                    row <- models.Adventurer.getAuthRow(username, password)
-                } yield row
-
-                val pred = adventurerOption.fold { _ : models.Realm.Tile => false } { row =>
-                    !models.Adventurer.moveDenialFor(row, _).isDefined
-                }
-
 
                 val exits = List(
                     (0, -1), // north
@@ -53,7 +44,8 @@ object RealmTile extends Controller {
                     if (nx < 0 || nx >= w || ny < 0 || ny >= h) {
                         false
                     } else {
-                        pred(models.Realm.loadTiles(realmName)(ni))
+                        !models.Adventurer.moveDenialFor(new Position(x, y, realmName),
+                                                         models.Realm.loadTiles(realmName)(ni)).isDefined
                     }
                 }
 
@@ -76,8 +68,6 @@ object RealmTile extends Controller {
                     })) ~
                     ("adventurers" -> models.Realm.getAdventurers(realmName, x, y).map({ row =>
                         row[String]("name")
-                    }).filter({ name =>
-                        adventurerOption.fold {true} (adventurer => name != adventurer[String]("name"))
                     })) ~
                     ("pos" ->
                         ("x" -> x) ~
