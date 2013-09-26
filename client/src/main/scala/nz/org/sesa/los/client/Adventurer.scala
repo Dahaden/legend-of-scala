@@ -235,6 +235,8 @@ case class Adventurer private(val name : String, token : String) {
     }
 
     def combine(mold : AnyRef) : Option[Item] = {
+        var ids : Set[Int] = Set()
+
         val parts = for {
             field <- mold.getClass.getDeclaredFields
         } yield {
@@ -244,7 +246,17 @@ case class Adventurer private(val name : String, token : String) {
             }
 
             field.setAccessible(true)
-            field.getName -> field.get(mold).asInstanceOf[Item].id
+
+            val id = field.get(mold).asInstanceOf[Item].id
+
+            if (ids contains id) {
+                Display.show("Yeah, you can't combine an item with itself.")
+                return None
+            }
+
+            ids = ids + id
+
+            field.getName -> id
         }
 
         val req = (:/(Global.ServerAddress) / "adventurers" / name / "combine" << json.pretty(json.render(
