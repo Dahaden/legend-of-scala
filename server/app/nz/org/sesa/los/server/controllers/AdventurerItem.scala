@@ -74,4 +74,16 @@ object AdventurerItem extends Controller {
             ("why" -> s"Can't use this item.")
         ))).as("application/json")
     }
+
+    def combine(adventurerName : String) = Action { request =>
+        BadRequest(json.pretty(json.render(
+            ("why" -> s"Can't figure out how to combine.")
+        ))).as("application/json")
+    }
+
+    def separate(adventurerName : String, itemId : Int) = Action { request =>
+        BadRequest(json.pretty(json.render(
+            ("why" -> s"Can't separate this item.")
+        ))).as("application/json")
+    }
 }

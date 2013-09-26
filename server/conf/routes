@@ -7,6 +7,8 @@ GET     /adventurers                                        nz.org.sesa.los.serv
 POST    /adventurers                                        nz.org.sesa.los.server.controllers.Adventurer.create
 GET     /adventurers/:adventurerName                        nz.org.sesa.los.server.controllers.Adventurer.view(adventurerName: String)
 POST    /adventurers/:adventurerName/move                   nz.org.sesa.los.server.controllers.Adventurer.move(adventurerName: String)
+POST    /adventurers/:adventurerName/combine                nz.org.sesa.los.server.controllers.AdventurerItem.combine(adventurerName: String)
 GET     /adventurers/:adventurerName/items                  nz.org.sesa.los.server.controllers.AdventurerItem.index(adventurerName: String)
 GET     /adventurers/:adventurerName/items/:itemId          nz.org.sesa.los.server.controllers.AdventurerItem.view(adventurerName: String, itemId: Int)
 POST    /adventurers/:adventurerName/items/:itemId          nz.org.sesa.los.server.controllers.AdventurerItem.use(adventurerName: String, itemId: Int)
+POST    /adventurers/:adventurerName/items/:itemId/separate nz.org.sesa.los.server.controllers.AdventurerItem.separate(adventurerName: String, itemId: Int)
