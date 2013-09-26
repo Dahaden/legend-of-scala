@@ -16,6 +16,6 @@ case class Monster(val id : Int, val kind : String, val hearts : Int, val maxHea
     override def toString = s"""
 ${this.image}
 ${Display.StartHilight}.name =${Display.Reset} ${name}
-${Display.Bold}${Display.fg(196)}.hearts = ${(0 until this.hearts).map({_ => "♥"}).mkString(" ")}${Display.Reset} ${(this.hearts until this.maxHearts).map({_ => "♡"}).mkString(" ")}
+${Display.StartHilight}.hearts =${Display.Reset} ${Display.Bold}${Display.fg(196)}${(0 until this.hearts).map({_ => "♥"}).mkString(" ")}${Display.Reset} ${(this.hearts until this.maxHearts).map({_ => "♡"}).mkString(" ")}
 """
 }
