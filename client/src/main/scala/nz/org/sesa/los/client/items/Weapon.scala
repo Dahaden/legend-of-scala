@@ -4,6 +4,7 @@ import nz.org.sesa.los.client.Adventurer
 import nz.org.sesa.los.client.Global
 import nz.org.sesa.los.client.Position
 import nz.org.sesa.los.client.Item
+import nz.org.sesa.los.client.Monster
 import nz.org.sesa.los.client.util._
 
 import dispatch._, Defaults._
@@ -14,10 +15,9 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
-class Weapon(val id : Int, val owner : Adventurer, val material : String, val class_ : String) extends Item {    
-
+class Weapon(val id : Int, val owner : Adventurer, val material : String, val class_ : String) extends Item {
     def name = {
-        val betterName = material match { 
+        val betterName = material match {
             case "wood" => "wooden"
             case _      => material
         }
@@ -28,5 +28,30 @@ class Weapon(val id : Int, val owner : Adventurer, val material : String, val cl
 
     def image = io.Source.fromInputStream(this.getClass.getResourceAsStream(s"/images/${material}_${class_}.txt")).mkString
 
-    def action[T : TypeTag](args: Any*) = None
+    def action[T : TypeTag](args: Any*) = () match {
+        case _ if args.length != 1 => {
+            Display.show("You should use this on, like, a monster.")
+            None
+        }
+
+        case _ if !args(0).isInstanceOf[Monster] => {
+            Display.show("I don't think that appreciates being attacked.")
+            None
+        }
+
+        case _ => {
+            val req = (:/(Global.ServerAddress) / "adventurers" / owner.name / "items" / this.id / "use" << json.pretty(json.render(
+                "monster_id" -> args(0).asInstanceOf[Monster].id
+            ))).as_!(owner.name, owner.token)
+
+            implicit val formats = json.DefaultFormats
+
+            val resp = Await.result(owner.http(req), Duration.Inf)
+            var js = json.parse(resp.getResponseBody())
+
+            Display.show((js \ "why").extract[String])
+            this.owner.refresh
+            None
+        }
+    }
 }
