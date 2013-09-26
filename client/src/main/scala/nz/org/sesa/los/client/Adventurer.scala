@@ -5,6 +5,7 @@ import nz.org.sesa.los.client.util._
 import dispatch._, Defaults._
 import net.liftweb.json
 import net.liftweb.json.JsonDSL._
+import net.liftweb.json.Extraction._
 
 import scala.concurrent._
 import scala.concurrent.duration._
@@ -233,12 +234,58 @@ case class Adventurer private(val name : String, token : String) {
         }
     }
 
-    def combine[T](mold : T) = {
+    def combine(mold : AnyRef) : Option[Item] = {
+        val parts = for {
+            field <- mold.getClass.getDeclaredFields
+        } yield {
+            if (field.getType != classOf[Item]) {
+                Display.show("You try to fit things that aren't items into your mold, and fail miserably.")
+                return None
+            }
 
+            field.setAccessible(true)
+            field.getName -> field.get(mold).asInstanceOf[Item].id
+        }
+
+        val req = (:/(Global.ServerAddress) / "adventurers" / name / "combine" << json.pretty(json.render(
+            parts.foldRight (new json.JObject(List())) (_ ~ _)
+        ))).as_!(name, token)
+        val resp = Await.result(this.http(req), Duration.Inf)
+
+        val js = json.parse(resp.getResponseBody())
+
+        resp.getStatusCode() match {
+            case 400 => {
+                Display.show("You try to combine the items together, but it doesn't really work.")
+                None
+            }
+            case 200 => {
+                implicit val formats = json.DefaultFormats
+
+                Display.show("You combine the items to make a new item.")
+                this.inventory.find {_.id == (js \ "item_id").extract[Int]}
+            }
+        }
     }
 
-    def separate(item : Item) = {
+    def separate(item : Item) : List[Item] = {
+        implicit val formats = json.DefaultFormats
 
+        val req = (:/(Global.ServerAddress) / "adventurers" / name / "items" / item.id.toString / "separate" << "").as_!(name, token)
+        val resp = Await.result(this.http(req), Duration.Inf)
+
+        val js = json.parse(resp.getResponseBody())
+
+        resp.getStatusCode() match {
+            case 400 => {
+                Display.show(s"You try to pull the ${item.name} apart, but it doesn't budge")
+                List()
+            }
+            case 200 => {
+                Display.show(s"You pull apart the ${item.name}.")
+                this.inventory.filter {(js \ "item_ids").extract[List[Int]] contains _.id}
+            }
+        }
     }
 
     override def toString = s"""
