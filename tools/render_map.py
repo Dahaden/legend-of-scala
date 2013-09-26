@@ -2,7 +2,7 @@
 #encoding:utf-8
 import sys
 
-STRIDE = int(600 * 0.25)
+STRIDE = 150
 
 legend = {
     "ocean": 60,
@@ -43,15 +43,14 @@ import json
 with open("terrain.json") as f:
     map = json.load(f)
 
-x, y = 75, 75
+x, y = 46, 128
 
 for j in range(STRIDE):
     for i in range(STRIDE):
-        if x - 25 <= i < x + 25 and x - 25 <= j < x + 25:
+        if x - 25 <= i < x + 25 and y - 25 <= j < y + 25:
             e = make_escape(legend[map[j * STRIDE + i]["terrain"]])
             if i == x and j == y:
                 sys.stdout.write(Markers.me)
             else:
                 sys.stdout.write(e + "  ")
-    if x - 25 <= j < x + 25:
-        print("\x1b[0m")
+    print("\x1b[0m")

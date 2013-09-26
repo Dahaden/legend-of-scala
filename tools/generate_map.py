@@ -393,40 +393,6 @@ for edge in map.edges.itervalues():
 img_data = img.load()
 img_data_in = img.copy().load()
 
-# rectilinearize roads and rivers
-
-print >>sys.stderr, "rectilinearizing roads and rivers..."
-for j in xrange(img.size[1]):
-    for i in xrange(img.size[0]):
-        pixel = img_data_in[i, j]
-
-        if pixel == COLORS['RIVER']:
-            if img_data_in[i - 1, j - 1] == pixel:
-                img_data[i, j - 1] = pixel
-
-            if img_data_in[i + 1, j - 1] == pixel:
-                img_data[i + 1, j] = pixel
-
-            if img_data_in[i + 1, j + 1] == pixel:
-                img_data[i, j + 1] = pixel
-
-            if img_data_in[i - 1, j + 1] == pixel:
-                img_data[i - 1, j] = pixel
-
-        if pixel in (COLORS['ROAD1'], COLORS['ROAD2'],
-                     COLORS['ROAD3']):
-            if img_data_in[i - 1, j - 1] == pixel:
-                img_data[i, j - 1] = pixel
-
-            if img_data_in[i + 1, j - 1] == pixel:
-                img_data[i + 1, j] = pixel
-
-            if img_data_in[i + 1, j + 1] == pixel:
-                img_data[i, j + 1] = pixel
-
-            if img_data_in[i - 1, j + 1] == pixel:
-                img_data[i - 1, j] = pixel
-
 print >>sys.stderr, "writing image..."
 img.save("rendered.png")
 
