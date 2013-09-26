@@ -78,29 +78,101 @@ object AdventurerItem extends Controller {
                 ("why" -> s"You try to combine an item... with itself?")
             ))).as("application/json")
         } else {
-            // TODO: implement combine recipes
-            () match {
+            (() match {
                 case _ if slots == Set("head", "handle") => {
                     // mace
-                    BadRequest(json.pretty(json.render(
-                        ("why" -> s"You try to combine the items, but don't quite manage.")
-                    ))).as("application/json")
+                    val handle = items.get("handle").head
+                    val head = items.get("head").head
+
+                    if (handle[String]("kind") != "part" || (json.parse(handle[String]("attrs")) \ "type").extract[String] != "stick") {
+                        None
+                    } else {
+                        for {
+                            material <- (json.parse(head[String]("attrs")) \ "type").extract[String] match {
+                                case "plank" => Some("wood")
+                                case "ingot" => Some("iron")
+                                case "diamond" => Some("diamond")
+                                case _ => None
+                            }
+                        } yield ("weapon", (
+                            ("class" -> "mace") ~
+                            ("material" -> material))
+                        )
+                    }
                 }
                 case _ if slots == Set("pole", "tip") => {
                     // spear
-                    BadRequest(json.pretty(json.render(
-                        ("why" -> s"You try to combine the items, but don't quite manage.")
-                    ))).as("application/json")
+                    val pole = items.get("pole").head
+                    val tip = items.get("tip").head
+
+                    if (pole[String]("kind") != "part" || (json.parse(pole[String]("attrs")) \ "type").extract[String] != "stick") {
+                        None
+                    } else {
+                        for {
+                            material <- (json.parse(tip[String]("attrs")) \ "type").extract[String] match {
+                                case "plank" => Some("wood")
+                                case "ingot" => Some("iron")
+                                case "diamond" => Some("diamond")
+                                case _ => None
+                            }
+                        } yield ("weapon", (
+                            ("class" -> "spear") ~
+                            ("material" -> material))
+                        )
+                    }
                 }
                 case _ if slots == Set("hilt", "blade") => {
                     // sword
-                    BadRequest(json.pretty(json.render(
-                        ("why" -> s"You try to combine the items, but don't quite manage.")
-                    ))).as("application/json")
+                    val hilt = items.get("hilt").head
+                    val blade = items.get("blade").head
+
+                    if (hilt[String]("kind") != "part" || (json.parse(hilt[String]("attrs")) \ "type").extract[String] != "stick") {
+                        None
+                    } else {
+                        for {
+                            material <- (json.parse(blade[String]("attrs")) \ "type").extract[String] match {
+                                case "plank" => Some("wood")
+                                case "ingot" => Some("iron")
+                                case "diamond" => Some("diamond")
+                                case _ => None
+                            }
+                        } yield ("weapon", (
+                            ("class" -> "sword") ~
+                            ("material" -> material))
+                        )
+                    }
                 }
                 case _ => {
-                    BadRequest(json.pretty(json.render(
-                        ("why" -> s"You try to combine the items, but don't quite manage.")
+                    None
+                }
+            }) match {
+                case None => BadRequest(json.pretty(json.render(
+                    ("why" -> s"You try to combine the items, but don't quite manage.")
+                ))).as("application/json")
+
+                case Some((kind, attrs)) => {
+                    var ownerId = items.values.head[Int]("owner_id")
+
+                    DB.withTransaction { implicit c =>
+                        for {
+                            part <- items.values
+                        } SQL("""DELETE FROM items
+                                 WHERE id = {id}""").on(
+                            "id" -> part[Int]("id")
+                        ).execute()
+                    }
+
+                    val itemId = DB.withTransaction { implicit c =>
+                        SQL("""INSERT INTO items (kind, owner_id, attrs)
+                               VALUES ({kind}, {ownerId}, {attrs})""").on(
+                            "kind" -> kind,
+                            "ownerId" -> ownerId,
+                            "attrs" -> json.pretty(json.render(attrs))
+                        ).executeInsert().get
+                    }
+
+                    Ok(json.pretty(json.render(
+                        "item_id" -> itemId
                     ))).as("application/json")
                 }
             }
@@ -127,7 +199,7 @@ object AdventurerItem extends Controller {
                         }
 
                         // always give back a stick
-                        val stick_id = DB.withTransaction { implicit c =>
+                        val stickId = DB.withTransaction { implicit c =>
                             SQL("""INSERT INTO items (kind, owner_id, attrs)
                                    VALUES ("part", {ownerId}, {attrs})""").on(
                                 "ownerId" -> row[Int]("owner_id"),
@@ -137,7 +209,7 @@ object AdventurerItem extends Controller {
                             ).executeInsert().get
                         }
 
-                        val rest_id = DB.withTransaction { implicit c =>
+                        val restId = DB.withTransaction { implicit c =>
                             SQL("""INSERT INTO items (kind, owner_id, attrs)
                                    VALUES ("part", {ownerId}, {attrs})""").on(
                                 "ownerId" -> row[Int]("owner_id"),
@@ -155,7 +227,7 @@ object AdventurerItem extends Controller {
                         }
 
                         Ok(json.pretty(json.render(
-                            "item_ids" -> List(stick_id, rest_id)
+                            "item_ids" -> List(stickId, restId)
                         ))).as("application/json")
                     }
                     case _ => BadRequest(json.pretty(json.render(
