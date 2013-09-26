@@ -71,7 +71,7 @@ object RealmTile extends Controller {
                         ("id" -> row[Int]("id")) ~
                         ("kind" -> row[String]("kind")) ~
                         ("hearts" -> row[Int]("hearts")) ~
-                        ("max_hearts" -> row[Int]("max_hearts")) ~
+                        ("maxHearts" -> row[Int]("max_hearts")) ~
                         ("drops" -> json.parse(row[String]("drops")))
                     })) ~
                     ("adventurers" -> models.Realm.getAdventurers(realmName, x, y).map({ row =>

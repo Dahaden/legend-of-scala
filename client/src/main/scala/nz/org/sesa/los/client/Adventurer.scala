@@ -80,7 +80,7 @@ object Adventurer {
         val Directions = List("north", "northeast", "east", "southeast", "south", "southwest", "west", "northwest")
     }
 
-    case class VisionHandle(val pos : Position, val terrain : String, val exits : List[Boolean], val features : List[Feature.RemoteHandle], val adventurers : List[String])
+    case class VisionHandle(val pos : Position, val terrain : String, val exits : List[Boolean], val features : List[Feature.RemoteHandle], val adventurers : List[String], val monsters : List[Monster])
 
     /**
      * A vision, obtained when using me.look.
@@ -89,8 +89,10 @@ object Adventurer {
         val pos = vh.pos
         val terrain = vh.terrain
         val exits = vh.exits
+
         val features = vh.features.map(_.deserialize(bindee))
         val adventurers = vh.adventurers
+        val monsters = vh.monsters
 
         override def toString = {
             val directions = exits.zip(Vision.Directions)
@@ -113,7 +115,7 @@ $possibleExits
 
 ${Display.StartHilight}.features =${Display.Reset} ${features}
 
-${Display.StartHilight}.monsters =${Display.Reset} ${List()}
+${Display.StartHilight}.monsters =${Display.Reset} ${monsters}
 
 ${Display.StartHilight}.adventurers =${Display.Reset} ${adventurers}
 """
@@ -144,7 +146,7 @@ ${io.Source.fromInputStream(this.getClass.getResourceAsStream("/images/splash.tx
     }
 }
 
-case class Adventurer private(val name : String, token : String) {
+class Adventurer private(val name : String, val token : String) {
     def pos : Position = rh.pos
 
     def hearts : Int = rh.hearts
@@ -271,7 +273,7 @@ case class Adventurer private(val name : String, token : String) {
     }
 
     override def toString = s"""
-${Display.StartHilight}$name the Adventurer${Display.Reset}
-${Display.Bold}${Display.fg(196)}.hearts =${Display.Reset} ${Display.fg(196)}${(0 until this.hearts).map({_ => "♥"}).mkString(" ")}${Display.Reset} ${(this.hearts until this.maxHearts).map({_ => "♡"}).mkString(" ")}
+${Display.StartHilight}.name =${Display.Reset} ${name}
+${Display.Bold}${Display.fg(196)}.hearts = {(0 until this.hearts).map({_ => "♥"}).mkString(" ")}${Display.Reset} ${(this.hearts until this.maxHearts).map({_ => "♡"}).mkString(" ")}
 """
 }
