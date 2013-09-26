@@ -57,12 +57,7 @@ object RealmTileFeature extends Controller {
 
     private def getRow(realmName : String, x : Int, y : Int, featureId : Int) = {
         DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT features.id AS id,
-                                     features.kind AS kind,
-                                     features.attrs AS attrs,
-                                     features.x AS x,
-                                     features.y as y,
-                                     realms.name AS realm
+            val rows = SQL("""SELECT *
                               FROM features, realms
                               WHERE features.realm_id = realms.id AND
                                     realms.name = {name} AND
@@ -105,7 +100,10 @@ object RealmTileFeature extends Controller {
             row <- models.Adventurer.getAuthRow(username, password)
         } yield row
 
-        this.getRow(realmName, x, y, featureId) match {
+        (for {
+            _ <- adventurerOption
+            row <- this.getRow(realmName, x, y, featureId)
+        } yield row) match {
             case None => {
                 NotFound(json.pretty(json.render(
                     ("why" -> s"Er, that doesn't exist anymore.")

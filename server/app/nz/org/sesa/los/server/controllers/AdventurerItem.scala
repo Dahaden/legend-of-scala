@@ -9,6 +9,7 @@ import net.liftweb.json
 import net.liftweb.json.JsonDSL._
 
 import nz.org.sesa.los.server.models
+import nz.org.sesa.los.server.util
 
 object AdventurerItem extends Controller {
     def index(adventurerName : String) = Action { request =>
@@ -47,22 +48,21 @@ object AdventurerItem extends Controller {
         }
     }
 
-    def use(adventurerName : String, itemId : Int) = Action(parse.tolerantText) { request =>
-        BadRequest(json.pretty(json.render(
-            ("why" -> s"Can't use this item.")
-        ))).as("application/json")
-    }
-
     def combine(adventurerName : String) = Action(parse.tolerantText) { request =>
+        val adventurerOption = for {
+            (username, password) <- util.getBasicAuth(request)
+            row <- models.Adventurer.getAuthRow(username, password)
+        } yield row
+
         implicit val formats = json.DefaultFormats
 
         val parts = json.parse(request.body).extract[Map[String, Int]]
 
         // ensure all the parts exist
-        val items = (for {
+        val items = adventurerOption.fold { Map() : Map[String, SqlRow] } { _ => (for {
             (slot, itemId) <- parts
             row <- models.Adventurer.getItem(itemId, adventurerName)
-        } yield (slot -> row)).toMap
+        } yield (slot -> row)).toMap }
 
         val slots = parts.keySet
 
@@ -175,7 +175,15 @@ object AdventurerItem extends Controller {
     }
 
     def separate(adventurerName : String, itemId : Int) = Action { request =>
-        models.Adventurer.getItem(itemId, adventurerName) match {
+        val adventurerOption = for {
+            (username, password) <- util.getBasicAuth(request)
+            row <- models.Adventurer.getAuthRow(username, password)
+        } yield row
+
+        (for {
+            _ <- adventurerOption
+            row <- models.Adventurer.getItem(itemId, adventurerName)
+        } yield row) match {
             case None => {
                 NotFound(json.pretty(json.render(
                     ("why" -> s"You don't have this item anymore.")

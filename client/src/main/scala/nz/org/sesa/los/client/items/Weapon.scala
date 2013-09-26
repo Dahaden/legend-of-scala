@@ -40,8 +40,11 @@ class Weapon(val id : Int, val owner : Adventurer, val material : String, val cl
         }
 
         case _ => {
-            val req = (:/(Global.ServerAddress) / "adventurers" / owner.name / "items" / this.id / "use" << json.pretty(json.render(
-                "monster_id" -> args(0).asInstanceOf[Monster].id
+            val monsterId = args(0).asInstanceOf[Monster].id
+            val pos = owner.look.pos
+
+            val req = (:/(Global.ServerAddress) / "realms" / pos.realm / (pos.x.toString + "," + pos.y.toString) / "monsters" / monsterId / "attack" << json.pretty(json.render(
+                "weapon_id" -> this.id
             ))).as_!(owner.name, owner.token)
 
             implicit val formats = json.DefaultFormats

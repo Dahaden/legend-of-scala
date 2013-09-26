@@ -3,6 +3,7 @@ GET     /realms/:realmName                                  nz.org.sesa.los.serv
 GET     /realms/:realmName/:x,:y                            nz.org.sesa.los.server.controllers.RealmTile.view(realmName: String, x: Int, y: Int)
 GET     /realms/:realmName/:x,:y/features/:featureId        nz.org.sesa.los.server.controllers.RealmTileFeature.view(realmName: String, x: Int, y: Int, featureId : Int)
 POST    /realms/:realmName/:x,:y/features/:featureId        nz.org.sesa.los.server.controllers.RealmTileFeature.use(realmName: String, x: Int, y: Int, featureId : Int)
+POST    /realms/:realmName/:x,:y/monsters/:monsterId/attack nz.org.sesa.los.server.controllers.RealmTileMonster.attack(realmName: String, x: Int, y: Int, monsterId : Int)
 GET     /adventurers                                        nz.org.sesa.los.server.controllers.Adventurer.index
 POST    /adventurers                                        nz.org.sesa.los.server.controllers.Adventurer.create
 GET     /adventurers/:adventurerName                        nz.org.sesa.los.server.controllers.Adventurer.view(adventurerName: String)
@@ -10,5 +11,4 @@ POST    /adventurers/:adventurerName/move                   nz.org.sesa.los.serv
 POST    /adventurers/:adventurerName/combine                nz.org.sesa.los.server.controllers.AdventurerItem.combine(adventurerName: String)
 GET     /adventurers/:adventurerName/items                  nz.org.sesa.los.server.controllers.AdventurerItem.index(adventurerName: String)
 GET     /adventurers/:adventurerName/items/:itemId          nz.org.sesa.los.server.controllers.AdventurerItem.view(adventurerName: String, itemId: Int)
-POST    /adventurers/:adventurerName/items/:itemId          nz.org.sesa.los.server.controllers.AdventurerItem.use(adventurerName: String, itemId: Int)
 POST    /adventurers/:adventurerName/items/:itemId/separate nz.org.sesa.los.server.controllers.AdventurerItem.separate(adventurerName: String, itemId: Int)
