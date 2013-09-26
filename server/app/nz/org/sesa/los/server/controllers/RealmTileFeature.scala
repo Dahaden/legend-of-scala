@@ -93,7 +93,7 @@ object RealmTileFeature extends Controller {
                 Ok(json.pretty(json.render(
                     ("id" -> row[Int]("id")) ~
                     ("kind" -> row[String]("kind")) ~
-                    ("attrs" -> json.parse(row[Option[String]]("attrs").getOrElse("null")))
+                    ("attrs" -> json.parse(row[Option[String]]("attrs").getOrElse("{}")))
                 ))).as("application/json")
             }
         }
