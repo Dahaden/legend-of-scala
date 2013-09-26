@@ -24,6 +24,7 @@ object Item {
                 case "map-legend"   => new items.MapLegend(id, owner)
                 case "beacon"       => new items.Beacon(id, owner)
                 case "weapon"       => new items.Weapon(id, owner, (attrs \ "material").extract[String], (attrs \ "class").extract[String])
+                case "part"         => new items.Part(id, owner, (attrs \ "type").extract[String])
             }
         }
     }

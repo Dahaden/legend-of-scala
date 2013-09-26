@@ -61,6 +61,7 @@ object Adventurer {
             val rows = SQL("""SELECT items.id AS id,
                                      items.kind AS kind,
                                      items.attrs AS attrs,
+                                     items.owner_id AS owner_id,
                                      adventurers.name AS owner
                                FROM items, adventurers
                                WHERE items.id = {id} AND

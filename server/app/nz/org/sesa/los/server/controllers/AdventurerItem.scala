@@ -79,18 +79,91 @@ object AdventurerItem extends Controller {
             ))).as("application/json")
         } else {
             // TODO: implement combine recipes
-
-            BadRequest(json.pretty(json.render(
-                ("why" -> s"You try to combine the items, but don't quite manage.")
-            ))).as("application/json")
+            () match {
+                case _ if slots == Set("head", "handle") => {
+                    // mace
+                    BadRequest(json.pretty(json.render(
+                        ("why" -> s"You try to combine the items, but don't quite manage.")
+                    ))).as("application/json")
+                }
+                case _ if slots == Set("pole", "tip") => {
+                    // spear
+                    BadRequest(json.pretty(json.render(
+                        ("why" -> s"You try to combine the items, but don't quite manage.")
+                    ))).as("application/json")
+                }
+                case _ if slots == Set("hilt", "blade") => {
+                    // sword
+                    BadRequest(json.pretty(json.render(
+                        ("why" -> s"You try to combine the items, but don't quite manage.")
+                    ))).as("application/json")
+                }
+                case _ => {
+                    BadRequest(json.pretty(json.render(
+                        ("why" -> s"You try to combine the items, but don't quite manage.")
+                    ))).as("application/json")
+                }
+            }
         }
     }
 
     def separate(adventurerName : String, itemId : Int) = Action { request =>
-        BadRequest(json.pretty(json.render(
-            // TODO: implement separations, probably from combines
+        models.Adventurer.getItem(itemId, adventurerName) match {
+            case None => {
+                NotFound(json.pretty(json.render(
+                    ("why" -> s"You don't have this item anymore.")
+                ))).as("application/json")
+            }
+            case Some(row) => {
+                val attrs = json.parse(row[String]("attrs"))
+                implicit val formats = json.DefaultFormats
 
-            ("why" -> s"Can't separate this item.")
-        ))).as("application/json")
+                row[String]("kind") match {
+                    case "weapon" => {
+                        val rest = (attrs \ "material").extract[String] match {
+                            case "wood" => "plank"
+                            case "iron" => "ingot"
+                            case "diamond" => "diamond"
+                        }
+
+                        // always give back a stick
+                        val stick_id = DB.withTransaction { implicit c =>
+                            SQL("""INSERT INTO items (kind, owner_id, attrs)
+                                   VALUES ("part", {ownerId}, {attrs})""").on(
+                                "ownerId" -> row[Int]("owner_id"),
+                                "attrs" -> json.pretty(json.render(
+                                    "type" -> "stick"
+                                ))
+                            ).executeInsert().get
+                        }
+
+                        val rest_id = DB.withTransaction { implicit c =>
+                            SQL("""INSERT INTO items (kind, owner_id, attrs)
+                                   VALUES ("part", {ownerId}, {attrs})""").on(
+                                "ownerId" -> row[Int]("owner_id"),
+                                "attrs" -> json.pretty(json.render(
+                                    "type" -> rest
+                                ))
+                            ).executeInsert().get
+                        }
+
+                        DB.withTransaction { implicit c =>
+                            SQL("""DELETE FROM items
+                                   WHERE id = {id}""").on(
+                                "id" -> row[Int]("id")
+                            ).execute()
+                        }
+
+                        Ok(json.pretty(json.render(
+                            "item_ids" -> List(stick_id, rest_id)
+                        ))).as("application/json")
+                    }
+                    case _ => BadRequest(json.pretty(json.render(
+                        // TODO: implement separations, probably from combines
+                        ("why" -> s"Can't separate this item.")
+                    ))).as("application/json")
+                }
+            }
+        }
     }
 }

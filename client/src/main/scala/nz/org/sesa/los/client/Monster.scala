@@ -13,9 +13,14 @@ import scala.reflect.runtime.universe.{TypeTag, typeTag}
 case class Monster(val id : Int, val kind : String, val hearts : Int, val maxHearts : Int) {
     def name = kind
     def image = io.Source.fromInputStream(this.getClass.getResourceAsStream(s"/images/${this.name}.txt")).mkString
+    def weakness = kind match {
+        case "ogre" => "sword"
+    }
+
     override def toString = s"""
 ${this.image}
 ${Display.StartHilight}.name =${Display.Reset} ${name}
 ${Display.StartHilight}.hearts =${Display.Reset} ${Display.Bold}${Display.fg(196)}${(0 until this.hearts).map({_ => "♥"}).mkString(" ")}${Display.Reset} ${(this.hearts until this.maxHearts).map({_ => "♡"}).mkString(" ")}
+${Display.StartHilight}.weakness =${Display.Reset} ${this.weakness}
 """
 }
