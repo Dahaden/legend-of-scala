@@ -23,10 +23,10 @@ object Realm extends Controller {
             }
             case Some(row) => {
                 Ok(json.pretty(json.render(
-                    ("id" -> row[Int]("id")) ~
-                    ("name" -> row[String]("name")) ~
-                    ("w" -> row[Int]("w")) ~
-                    ("h" -> row[Int]("h")) ~
+                    ("id" -> row[Int]("realms.id")) ~
+                    ("name" -> row[String]("realms.name")) ~
+                    ("w" -> row[Int]("realms.w")) ~
+                    ("h" -> row[Int]("realms.h")) ~
                     ("tiles" -> decompose(models.Realm.loadTiles(realmName)))
                 ))).as("application/json")
             }

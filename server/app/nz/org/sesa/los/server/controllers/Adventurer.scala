@@ -16,24 +16,19 @@ import scala.util.Random
 object Adventurer extends Controller {
     def index() = Action { request =>
         DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT adventurers.id AS id,
-                                     adventurers.name AS name,
-                                     adventurers.x AS x,
-                                     adventurers.y AS y,
-                                     realms.name AS realm,
-                                     adventurers.hearts AS hearts,
+            val rows = SQL("""SELECT *
                               FROM adventurers, realms
                               WHERE adventurers.realm_id = realms.id""")
 
             Ok(json.pretty(json.render(rows().map { row =>
-                ("id"   -> row[Int]("id")) ~
-                ("name" -> row[String]("name")) ~
+                ("id"   -> row[Int]("adventurers.id")) ~
+                ("name" -> row[String]("adventurers.name")) ~
                 ("pos" ->
-                    ("x"    -> row[Int]("x")) ~
-                    ("y"    -> row[Int]("y")) ~
-                    ("realm" -> row[String]("realm"))
+                    ("x"    -> row[Int]("adventurers.x")) ~
+                    ("y"    -> row[Int]("adventurers.y")) ~
+                    ("realm" -> row[String]("realms.name"))
                 ) ~
-                ("hearts"-> row[Int]("hearts"))
+                ("hearts"-> row[Int]("adventurers.hearts"))
             }))).as("application/json")
         }
     }
@@ -51,7 +46,7 @@ object Adventurer extends Controller {
             val h = 10
 
             val dungeonId = SQL("""INSERT INTO realms(name, w, h)
-                                   VALUES("tutorial dungeon for " || {name}, {w}, {h})""").on(
+                                   VALUES('tutorial dungeon for ' || {name}, {w}, {h})""").on(
                 "name" -> name,
                 "w" -> w,
                 "h" -> h
@@ -61,7 +56,7 @@ object Adventurer extends Controller {
 
             // make chest at start of dungeon
             SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
-                   VALUES ("remote_only", {attrs}, {x}, {y}, {dungeonId})""").on(
+                   VALUES ('remote_only', {attrs}, {x}, {y}, {dungeonId})""").on(
                 "attrs" -> json.pretty(json.render(
                     ("behavior" -> "chest") ~
                     ("items" -> List(
@@ -81,7 +76,7 @@ object Adventurer extends Controller {
 
             // make boss at end of dungeon
             SQL("""INSERT INTO monsters(kind, drops, hearts, max_hearts, x, y, realm_id)
-                   VALUES ("ogre", {drops}, 2, 2, {x}, {y}, {dungeonId})""").on(
+                   VALUES ('ogre', {drops}, 2, 2, {x}, {y}, {dungeonId})""").on(
                 "drops" -> json.pretty(json.render(List(
                     ("name" -> "map"),
                     ("name" -> "map-legend"),
@@ -104,7 +99,7 @@ object Adventurer extends Controller {
             val (x, y) = locs(rand.nextInt(locs.length))
 
             SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
-                   VALUES ("remote_only", {attrs}, {x}, {y}, {dungeonId})""").on(
+                   VALUES ('remote_only', {attrs}, {x}, {y}, {dungeonId})""").on(
                 "attrs" -> json.pretty(json.render(
                     ("behavior" -> "portal") ~
                     ("target" -> (
@@ -156,14 +151,14 @@ object Adventurer extends Controller {
             }
             case Some(row) => {
                 Ok(json.pretty(json.render(
-                    ("id"    -> row[Int]("id")) ~
-                    ("name"  -> row[String]("name")) ~
+                    ("id"    -> row[Int]("adventurers.id")) ~
+                    ("name"  -> row[String]("adventurers.name")) ~
                     ("pos" ->
-                        ("x"    -> row[Int]("x")) ~
-                        ("y"    -> row[Int]("y")) ~
-                        ("realm" -> row[String]("realm"))
+                        ("x"    -> row[Int]("adventurers.x")) ~
+                        ("y"    -> row[Int]("adventurers.y")) ~
+                        ("realm" -> row[String]("realms.name"))
                     ) ~
-                    ("hearts"-> row[Int]("hearts"))
+                    ("hearts"-> row[Int]("adventurers.hearts"))
                 ))).as("application/json")
             }
         }
@@ -181,7 +176,7 @@ object Adventurer extends Controller {
                     ("why" -> s"Sorry, but you, $adventurerName, are not an adventurer.")
                 ))).as("application/json")
             }
-            case Some(row) if row[String]("name") != adventurerName => {
+            case Some(row) if row[String]("adventurers.name") != adventurerName => {
                 Unauthorized(json.pretty(json.render(
                     ("why" -> s"Can't move someone else.")
                 ))).as("application/json")
@@ -205,14 +200,14 @@ object Adventurer extends Controller {
                             case "southeast" => (1, 1)
                         }
 
-                        val ox = row[Int]("x")
-                        val oy = row[Int]("y")
-                        val w = row[Int]("w")
+                        val ox = row[Int]("adventurers.x")
+                        val oy = row[Int]("adventurers.y")
+                        val w = row[Int]("realms.w")
 
                         val x = ox + dx
                         val y = oy + dy
 
-                        val realm = row[String]("realm")
+                        val realm = row[String]("realms.name")
 
                         val i = y * w + x
                         val target = models.Realm.loadTiles(realm)(i)

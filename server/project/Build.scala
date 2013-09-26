@@ -12,8 +12,7 @@ object ApplicationBuild extends Build {
     // Add your project dependencies here,
     jdbc,
     anorm,
-    "net.liftweb" %% "lift-json" % "2.5.1",
-    "org.xerial" % "sqlite-jdbc" % "3.7.2"
+    "net.liftweb" %% "lift-json" % "2.5.1"
   )
 
 

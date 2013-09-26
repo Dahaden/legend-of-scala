@@ -16,7 +16,7 @@ import java.io.PrintWriter
 object Realm {
     def getRow(realmName : String) = {
         DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT id, name, w, h
+            val rows = SQL("""SELECT *
                               FROM realms
                               WHERE name = {name}""").on(
                 "name" -> realmName
@@ -31,12 +31,7 @@ object Realm {
 
     def getFeatures(realmName : String, x : Int, y : Int) = {
         DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT features.id AS id,
-                                     features.kind AS kind,
-                                     features.attrs AS attrs,
-                                     features.x AS x,
-                                     features.y as y,
-                                     realms.name AS realm
+            val rows = SQL("""SELECT *
                               FROM features, realms
                               WHERE features.realm_id = realms.id AND
                                     realms.name = {name} AND
@@ -53,14 +48,7 @@ object Realm {
 
     def getMonsters(realmName : String, x : Int, y : Int) = {
         DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT monsters.id AS id,
-                                     monsters.kind AS kind,
-                                     monsters.hearts AS hearts,
-                                     monsters.drops AS drops,
-                                     monsters.x AS x,
-                                     monsters.y as y,
-                                     monsters.max_hearts AS max_hearts,
-                                     realms.name AS realm
+            val rows = SQL("""SELECT *
                               FROM monsters, realms
                               WHERE monsters.realm_id = realms.id AND
                                     realms.name = {name} AND
@@ -77,12 +65,7 @@ object Realm {
 
     def getAdventurers(realmName : String, x : Int, y : Int) = {
         DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT adventurers.id AS id,
-                                     adventurers.name AS name,
-                                     adventurers.x AS x,
-                                     adventurers.y AS y,
-                                     realms.name AS realm,
-                                     adventurers.hearts AS hearts
+            val rows = SQL("""SELECT *
                               FROM adventurers, realms
                               WHERE adventurers.realm_id = realms.id AND
                                     realms.name = {name} AND

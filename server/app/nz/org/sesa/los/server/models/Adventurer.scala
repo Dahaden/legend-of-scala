@@ -10,14 +10,7 @@ import nz.org.sesa.los.server.Position
 object Adventurer {
     def getRow(adventurerName : String) = {
         DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT adventurers.id AS id,
-                                     adventurers.name AS name,
-                                     adventurers.x AS x,
-                                     adventurers.y AS y,
-                                     realms.name AS realm,
-                                     realms.w AS w,
-                                     realms.h AS h,
-                                     adventurers.hearts AS hearts
+            val rows = SQL("""SELECT *
                               FROM adventurers, realms
                               WHERE adventurers.realm_id = realms.id AND
                                     adventurers.name = {name}""").on(
@@ -33,14 +26,7 @@ object Adventurer {
 
     def getAuthRow(adventurerName : String, token : String) = {
         DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT adventurers.id AS id,
-                                     adventurers.name AS name,
-                                     adventurers.x AS x,
-                                     adventurers.y AS y,
-                                     realms.name AS realm,
-                                     realms.w AS w,
-                                     realms.h AS h,
-                                     adventurers.hearts AS hearts
+            val rows = SQL("""SELECT *
                               FROM adventurers, realms
                               WHERE adventurers.realm_id = realms.id AND
                                     adventurers.name = {name} AND
@@ -58,11 +44,7 @@ object Adventurer {
 
     def getItem(itemId : Int, owner : String) = {
         DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT items.id AS id,
-                                     items.kind AS kind,
-                                     items.attrs AS attrs,
-                                     items.owner_id AS owner_id,
-                                     adventurers.name AS owner
+            val rows = SQL("""SELECT *
                                FROM items, adventurers
                                WHERE items.id = {id} AND
                                      items.owner_id = adventurers.id AND

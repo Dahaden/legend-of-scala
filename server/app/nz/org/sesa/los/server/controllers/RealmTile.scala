@@ -23,8 +23,8 @@ object RealmTile extends Controller {
             }
 
             case Some(row) => {
-                val w = row[Int]("w")
-                val h = row[Int]("h")
+                val w = row[Int]("realms.w")
+                val h = row[Int]("realms.h")
 
                 val exits = List(
                     (0, -1), // north
@@ -55,19 +55,19 @@ object RealmTile extends Controller {
                 Ok(json.pretty(json.render(
                     ("terrain" -> tile.terrain) ~
                     ("features" -> models.Realm.getFeatures(realmName, x, y).map({ row =>
-                        ("id" -> row[Int]("id")) ~
-                        ("kind" -> row[String]("kind")) ~
-                        ("attrs" -> json.parse(row[Option[String]]("attrs").getOrElse("null")))
+                        ("id" -> row[Int]("features.id")) ~
+                        ("kind" -> row[String]("features.kind")) ~
+                        ("attrs" -> json.parse(row[Option[String]]("features.attrs").getOrElse("null")))
                     })) ~
                     ("monsters" -> models.Realm.getMonsters(realmName, x, y).map({ row =>
-                        ("id" -> row[Int]("id")) ~
-                        ("kind" -> row[String]("kind")) ~
-                        ("hearts" -> row[Int]("hearts")) ~
-                        ("maxHearts" -> row[Int]("max_hearts")) ~
-                        ("drops" -> json.parse(row[String]("drops")))
+                        ("id" -> row[Int]("monsters.id")) ~
+                        ("kind" -> row[String]("monsters.kind")) ~
+                        ("hearts" -> row[Int]("monsters.hearts")) ~
+                        ("maxHearts" -> row[Int]("monsters.max_hearts")) ~
+                        ("drops" -> json.parse(row[String]("monsters.drops")))
                     })) ~
                     ("adventurers" -> models.Realm.getAdventurers(realmName, x, y).map({ row =>
-                        row[String]("name")
+                        row[String]("adventurers.name")
                     })) ~
                     ("pos" ->
                         ("x" -> x) ~

@@ -29,8 +29,8 @@ object RealmTileFeature extends Controller {
                                WHERE id = {adventurerId}""").on(
                             "x" -> target.x,
                             "y" -> target.y,
-                            "realmId" -> row[Int]("id"),
-                            "adventurerId" -> adventurer[Int]("id")
+                            "realmId" -> row[Int]("realms.id"),
+                            "adventurerId" -> adventurer[Int]("adventurers.id")
                         ).execute()
                     }
 
@@ -49,7 +49,7 @@ object RealmTileFeature extends Controller {
             } SQL("""INSERT INTO items (kind, owner_id, attrs)
                      VALUES ({kind}, {ownerId}, {attrs})""").on(
                 "kind" -> (item \ "kind").extract[String],
-                "ownerId" -> adventurer[Int]("id"),
+                "ownerId" -> adventurer[Int]("adventurers.id"),
                 "attrs" -> json.pretty(json.render(item \ "attrs"))
             ).execute()
         }
@@ -91,9 +91,9 @@ object RealmTileFeature extends Controller {
             }
             case Some(row) => {
                 Ok(json.pretty(json.render(
-                    ("id" -> row[Int]("id")) ~
-                    ("kind" -> row[String]("kind")) ~
-                    ("attrs" -> json.parse(row[Option[String]]("attrs").getOrElse("{}")))
+                    ("id" -> row[Int]("features.id")) ~
+                    ("kind" -> row[String]("features.kind")) ~
+                    ("attrs" -> json.parse(row[Option[String]]("features.attrs").getOrElse("{}")))
                 ))).as("application/json")
             }
         }
@@ -112,8 +112,8 @@ object RealmTileFeature extends Controller {
                 ))).as("application/json")
             }
             case Some(row) => {
-                val kind = row[String]("kind")
-                val attrs = json.parse(row[Option[String]]("attrs").getOrElse("null"))
+                val kind = row[String]("features.kind")
+                val attrs = json.parse(row[Option[String]]("features.attrs").getOrElse("null"))
 
                 val monsters = models.Realm.getMonsters(realmName, x, y)
 
