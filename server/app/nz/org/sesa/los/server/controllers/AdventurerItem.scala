@@ -76,13 +76,13 @@ object AdventurerItem extends Controller {
             ))).as("application/json")
         } else {
             (() match {
-                case _ if slots == Set("shaft", "fireGem", "waterGem", "earthGem", "airGem") => {
+                case _ if slots == Set("shaft", "fire_gem", "water_gem", "earth_gem", "air_gem") => {
                     // ancient staff
                     val shaft = items.get("shaft").head // tee hee
-                    val fireGem = items.get("fireGem").head
-                    val waterGem = items.get("waterGem").head
-                    val earthGem = items.get("earthGem").head
-                    val airGem = items.get("airGem").head
+                    val fireGem = items.get("fire_gem").head
+                    val waterGem = items.get("water_gem").head
+                    val earthGem = items.get("earth_gem").head
+                    val airGem = items.get("air_gem").head
 
                     if (shaft[String]("items.kind") != "part" || (json.parse(shaft[String]("items.attrs")) \ "type").extract[String] != "stick") {
                         None
@@ -196,6 +196,43 @@ object AdventurerItem extends Controller {
         }
     }
 
+    def use(adventurerName : String, itemId : Int) = Action { request =>
+        val adventurerOption = for {
+            (username, password) <- util.getBasicAuth(request)
+            row <- models.Adventurer.getAuthRow(username, password)
+        } yield row
+
+        (for {
+            adventurer <- adventurerOption
+            row <- models.Adventurer.getItem(itemId, adventurerName)
+        } yield (adventurer, row)) match {
+            case None => {
+                NotFound(json.pretty(json.render(
+                    ("why" -> s"You don't have this item anymore.")
+                ))).as("application/json")
+            }
+            case Some((adventurer, item)) => {
+                if (item[String]("items.kind") != "potion") {
+                    BadRequest(json.pretty(json.render(
+                        ("why" -> s"Can't use an item like this.")
+                    ))).as("application/json")
+                } else {
+                    DB.withTransaction { implicit c =>
+                        SQL("""UPDATE adventurers
+                               SET hearts = {hearts}
+                               WHERE id = {id}""").on(
+                            "hearts" -> Math.max(adventurer[Int]("adventurers.hearts") + 5, 10), // XXX: 10 hearts is hardcoded
+                            "id" -> adventurer[Int]("adventurers.id")
+                        ).execute()
+                    }
+                    Ok(json.pretty(json.render(
+                        ("why" -> s"You feel a little more invigorated.")
+                    ))).as("application")
+                }
+            }
+        }
+    }
+
     def separate(adventurerName : String, itemId : Int) = Action { request =>
         val adventurerOption = for {
             (username, password) <- util.getBasicAuth(request)
@@ -211,11 +248,11 @@ object AdventurerItem extends Controller {
                     ("why" -> s"You don't have this item anymore.")
                 ))).as("application/json")
             }
-            case Some(row) => {
-                val attrs = json.parse(row[String]("items.attrs"))
+            case Some(item) => {
+                val attrs = json.parse(item[String]("items.attrs"))
                 implicit val formats = json.DefaultFormats
 
-                row[String]("items.kind") match {
+                item[String]("items.kind") match {
                     case "weapon" => {
                         val class_ = (attrs \ "class").extract[String]
 
@@ -231,14 +268,14 @@ object AdventurerItem extends Controller {
                                     "item_ids" -> DB.withTransaction { implicit c =>
                                         SQL("""DELETE FROM items
                                                WHERE id = {id}""").on(
-                                            "id" -> row[Int]("items.id")
+                                            "id" -> item[Int]("items.id")
                                         ).execute()
 
                                         for {
                                             type_ <- List("stick", rest)
                                         } yield SQL("""INSERT INTO items (kind, owner_id, attrs)
                                                        VALUES ('part', {ownerId}, {attrs})""").on(
-                                            "ownerId" -> row[Int]("items.owner_id"),
+                                            "ownerId" -> item[Int]("items.owner_id"),
                                             "attrs" -> json.pretty(json.render(
                                                 "type" -> type_
                                             ))
@@ -252,14 +289,14 @@ object AdventurerItem extends Controller {
                                     "item_ids" -> DB.withTransaction { implicit c =>
                                         SQL("""DELETE FROM items
                                                WHERE id = {id}""").on(
-                                            "id" -> row[Int]("items.id")
+                                            "id" -> item[Int]("items.id")
                                         ).execute()
 
                                         for {
                                             type_ <- List("fire gem", "water gem", "earth gem", "air gem", "stick")
                                         } yield SQL("""INSERT INTO items (kind, owner_id, attrs)
                                                        VALUES ('part', {ownerId}, {attrs})""").on(
-                                            "ownerId" -> row[Int]("items.owner_id"),
+                                            "ownerId" -> item[Int]("items.owner_id"),
                                             "attrs" -> json.pretty(json.render(
                                                 "type" -> type_
                                             ))

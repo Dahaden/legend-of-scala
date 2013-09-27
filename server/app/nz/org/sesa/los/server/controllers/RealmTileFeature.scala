@@ -15,24 +15,22 @@ import nz.org.sesa.los.server.Position
 
 object RealmTileFeature extends Controller {
     private object RemoteOnlyBehaviors {
-        def teleport(adventurer : Row, target : Position) = {
+        def teleport(adventurer : Row, target : Position)(implicit c : Connection) = {
             models.Realm.getRow(target.realm) match {
                 case Some(row) => {
-                    DB.withConnection { implicit c =>
-                        SQL("""UPDATE adventurers
-                               SET x = {x},
-                                   y = {y},
-                                   realm_id = {realmId},
-                                   spawn_x = {x},
-                                   spawn_y = {y},
-                                   spawn_realm_id = {realmId}
-                               WHERE id = {adventurerId}""").on(
-                            "x" -> target.x,
-                            "y" -> target.y,
-                            "realmId" -> row[Int]("realms.id"),
-                            "adventurerId" -> adventurer[Int]("adventurers.id")
-                        ).execute()
-                    }
+                    SQL("""UPDATE adventurers
+                           SET x = {x},
+                               y = {y},
+                               realm_id = {realmId},
+                               spawn_x = {x},
+                               spawn_y = {y},
+                               spawn_realm_id = {realmId}
+                           WHERE id = {adventurerId}""").on(
+                        "x" -> target.x,
+                        "y" -> target.y,
+                        "realmId" -> row[Int]("realms.id"),
+                        "adventurerId" -> adventurer[Int]("adventurers.id")
+                    ).execute()
 
                     true
                 }
@@ -130,14 +128,27 @@ object RealmTileFeature extends Controller {
                                 case "portal" => {
                                     adventurerOption match {
                                         case Some(adventurer) => {
-                                            if (RemoteOnlyBehaviors.teleport(adventurer, (attrs \ "target").extract[Position])) {
-                                                Ok(json.pretty(json.render(
-                                                    ("why" -> s"Whoosh! Your surroundings disappear as you hurtle through the portal into a new realm.")
-                                                ))).as("application/json")
-                                            } else {
-                                                BadRequest(json.pretty(json.render(
-                                                    ("why" -> s"Teleport failed?")
-                                                ))).as("application/json")
+                                            DB.withTransaction { implicit c =>
+                                                if (RemoteOnlyBehaviors.teleport(adventurer, (attrs \ "target").extract[Position])) {
+                                                    // stop adventurers from visiting the same portal twice
+                                                    (attrs \ "linked_portal_id").extract[Option[Int]] match {
+                                                        case None => { }
+                                                        case Some(portalId) => {
+                                                            SQL("""DELETE FROM features
+                                                                   WHERE id = {portalId}""").on(
+                                                                "portalId" -> portalId
+                                                            ).execute
+                                                        }
+                                                    }
+
+                                                    Ok(json.pretty(json.render(
+                                                        ("why" -> s"Whoosh! Your surroundings disappear as you hurtle through the portal into a new realm.")
+                                                    ))).as("application/json")
+                                                } else {
+                                                    BadRequest(json.pretty(json.render(
+                                                        ("why" -> s"Teleport failed?")
+                                                    ))).as("application/json")
+                                                }
                                             }
                                         }
                                         case None => BadRequest(json.pretty(json.render(

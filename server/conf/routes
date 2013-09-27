@@ -11,4 +11,5 @@ POST    /adventurers/:adventurerName/move                   nz.org.sesa.los.serv
 POST    /adventurers/:adventurerName/combine                nz.org.sesa.los.server.controllers.AdventurerItem.combine(adventurerName: String)
 GET     /adventurers/:adventurerName/items                  nz.org.sesa.los.server.controllers.AdventurerItem.index(adventurerName: String)
 GET     /adventurers/:adventurerName/items/:itemId          nz.org.sesa.los.server.controllers.AdventurerItem.view(adventurerName: String, itemId: Int)
+POST    /adventurers/:adventurerName/items/:itemId/use      nz.org.sesa.los.server.controllers.AdventurerItem.view(adventurerName: String, itemId: Int)
 POST    /adventurers/:adventurerName/items/:itemId/separate nz.org.sesa.los.server.controllers.AdventurerItem.separate(adventurerName: String, itemId: Int)

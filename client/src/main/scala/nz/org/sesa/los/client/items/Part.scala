@@ -15,14 +15,18 @@ import scala.concurrent.duration._
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
 class Part(val id : Int, val owner : Adventurer, type_ : String) extends Item {
-    def name = type_
+    def name = type_.replace("_", " ")
 
     def examine = {
         type_ match {
             case "stick" => "It's a wooden stick. You could probably fashion it into some kind of handle."
-            case "plank" => "It's a wooden plank. It would make an okay sword blade or ax head."
-            case "ingot" => "It's an ingot made out of steel. Maybe you could turn it into a sword blade or ax head?"
-            case "diamond" => "It's a glistening diamond. It would make a really good sword blade or ax head."
+            case "plank" => "It's a wooden plank."
+            case "ingot" => "It's an ingot made out of iron."
+            case "diamond" => "It's a glistening diamond."
+            case "fire_gem" => "It's a fire gem, one of the parts of an ancient staff."
+            case "earth_gem" => "It's a earth gem, one of the parts of an ancient staff."
+            case "water_gem" => "It's a water gem, one of the parts of an ancient staff."
+            case "air_gem" => "It's a air gem, one of the parts of an ancient staff."
         }
     }
 

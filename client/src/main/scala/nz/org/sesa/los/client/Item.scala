@@ -25,6 +25,7 @@ object Item {
                 case "beacon"       => new items.Beacon(id, owner)
                 case "weapon"       => new items.Weapon(id, owner, (attrs \ "material").extract[String], (attrs \ "class").extract[String])
                 case "part"         => new items.Part(id, owner, (attrs \ "type").extract[String])
+                case "potion"       => new items.Potion(id, owner)
             }
         }
     }
@@ -40,6 +41,7 @@ trait Item {
 
     def remoting : Boolean = true
 
+    def use[T : TypeTag] : Option[T] = this.use()
     def use[T : TypeTag](args: Any*) : Option[T] = {
         if (!this.remoting) {
             return this.action(args: _*)
