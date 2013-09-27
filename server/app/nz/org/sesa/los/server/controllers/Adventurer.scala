@@ -141,6 +141,7 @@ object Adventurer extends Controller {
             ).execute()
 
             // generate a nearby dungeon
+            // TODO: less nearby
             models.Realm.makeRandomDungeonAt("world", x, y)
 
             // make adventurer
