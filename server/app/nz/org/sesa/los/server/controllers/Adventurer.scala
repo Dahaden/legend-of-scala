@@ -45,14 +45,16 @@ object Adventurer extends Controller {
             val w = 10
             val h = 10
 
+            val dungeonName = "Tutorial Dungeon for " + name
+
             val dungeonId = SQL("""INSERT INTO realms(name, w, h)
-                                   VALUES('tutorial dungeon for ' || {name}, {w}, {h})""").on(
-                "name" -> name,
+                                   VALUES({dungeonName}, {w}, {h})""").on(
+                "dungeonName" -> dungeonName,
                 "w" -> w,
                 "h" -> h
             ).executeInsert().get
 
-            val ((dsx, dsy), (dex, dey)) = models.Realm.generateDungeon("tutorial dungeon for " + name, w, h, 0, 0, 0, 0)
+            val ((dsx, dsy), (dex, dey)) = models.Realm.generateDungeon(dungeonName, w, h, 0, 0, 0, 0)
 
             // make chest at start of dungeon
             SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
@@ -147,114 +149,118 @@ object Adventurer extends Controller {
     def view(adventurerName : String) = Action { request =>
         val auth = util.getBasicAuth(request)
 
-        val adventurerOption = for {
-            (username, password) <- auth
-            row <- models.Adventurer.getAuthRow(username, password)
-        } yield row
+        DB.withTransaction { implicit c =>
+            val adventurerOption = for {
+                (username, password) <- auth
+                row <- models.Adventurer.getAuthRow(username, password)
+            } yield row
 
-        models.Adventurer.getRow(adventurerName) match {
-            case None => {
-                NotFound(json.pretty(json.render(
-                    ("why" -> s"Sorry, but you, $adventurerName, are not an adventurer.")
-                ))).as("application/json")
-            }
-            case Some(_) if auth.isDefined && !adventurerOption.isDefined => {
-                Unauthorized(json.pretty(json.render(
-                    ("why" -> s"Oops, your token was wrong.")
-                ))).as("application/json")
-            }
-            case Some(row) => {
-                Ok(json.pretty(json.render(
-                    ("id"    -> row[Int]("adventurers.id")) ~
-                    ("name"  -> row[String]("adventurers.name")) ~
-                    ("pos" ->
-                        ("x"    -> row[Int]("adventurers.x")) ~
-                        ("y"    -> row[Int]("adventurers.y")) ~
-                        ("realm" -> row[String]("realms.name"))
-                    ) ~
-                    ("hearts"-> row[Int]("adventurers.hearts"))
-                ))).as("application/json")
+            models.Adventurer.getRow(adventurerName) match {
+                case None => {
+                    NotFound(json.pretty(json.render(
+                        ("why" -> s"Sorry, but you, $adventurerName, are not an adventurer.")
+                    ))).as("application/json")
+                }
+                case Some(_) if auth.isDefined && !adventurerOption.isDefined => {
+                    Unauthorized(json.pretty(json.render(
+                        ("why" -> s"Oops, your token was wrong.")
+                    ))).as("application/json")
+                }
+                case Some(row) => {
+                    Ok(json.pretty(json.render(
+                        ("id"    -> row[Int]("adventurers.id")) ~
+                        ("name"  -> row[String]("adventurers.name")) ~
+                        ("pos" ->
+                            ("x"    -> row[Int]("adventurers.x")) ~
+                            ("y"    -> row[Int]("adventurers.y")) ~
+                            ("realm" -> row[String]("realms.name"))
+                        ) ~
+                        ("hearts"-> row[Int]("adventurers.hearts"))
+                    ))).as("application/json")
+                }
             }
         }
     }
 
     def move(adventurerName : String) = Action(parse.tolerantText) { request =>
-        val adventurerOption = for {
-            (username, password) <- util.getBasicAuth(request)
-            row <- models.Adventurer.getAuthRow(username, password)
-        } yield row
+        DB.withTransaction { implicit c =>
+            val adventurerOption = for {
+                (username, password) <- util.getBasicAuth(request)
+                row <- models.Adventurer.getAuthRow(username, password)
+            } yield row
 
-        adventurerOption match {
-            case None => {
-                NotFound(json.pretty(json.render(
-                    ("why" -> s"Sorry, but you, $adventurerName, are not an adventurer.")
-                ))).as("application/json")
-            }
-            case Some(row) if row[String]("adventurers.name") != adventurerName => {
-                Unauthorized(json.pretty(json.render(
-                    ("why" -> s"Can't move someone else.")
-                ))).as("application/json")
-            }
-            case Some(row) => {
-                val js = json.parse(request.body)
-                implicit val formats = json.DefaultFormats
+            adventurerOption match {
+                case None => {
+                    NotFound(json.pretty(json.render(
+                        ("why" -> s"Sorry, but you, $adventurerName, are not an adventurer.")
+                    ))).as("application/json")
+                }
+                case Some(row) if row[String]("adventurers.name") != adventurerName => {
+                    Unauthorized(json.pretty(json.render(
+                        ("why" -> s"Can't move someone else.")
+                    ))).as("application/json")
+                }
+                case Some(row) => {
+                    val js = json.parse(request.body)
+                    implicit val formats = json.DefaultFormats
 
-                val direction = (js \ "direction").extract[String]
-                direction match {
-                    case "north" | "south" | "east" | "west" |
-                         "northwest" | "southwest" | "northeast" | "southeast" => {
-                        val (dx, dy) = direction match {
-                            case "north" => (0, -1)
-                            case "northwest" => (-1, -1)
-                            case "south" => (0, 1)
-                            case "southwest" => (-1, 1)
-                            case "east" => (1, 0)
-                            case "northeast" => (1, -1)
-                            case "west" => (-1, 0)
-                            case "southeast" => (1, 1)
-                        }
+                    val direction = (js \ "direction").extract[String]
+                    direction match {
+                        case "north" | "south" | "east" | "west" |
+                             "northwest" | "southwest" | "northeast" | "southeast" => {
+                            val (dx, dy) = direction match {
+                                case "north" => (0, -1)
+                                case "northwest" => (-1, -1)
+                                case "south" => (0, 1)
+                                case "southwest" => (-1, 1)
+                                case "east" => (1, 0)
+                                case "northeast" => (1, -1)
+                                case "west" => (-1, 0)
+                                case "southeast" => (1, 1)
+                            }
 
-                        val ox = row[Int]("adventurers.x")
-                        val oy = row[Int]("adventurers.y")
-                        val w = row[Int]("realms.w")
+                            val ox = row[Int]("adventurers.x")
+                            val oy = row[Int]("adventurers.y")
+                            val w = row[Int]("realms.w")
 
-                        val x = ox + dx
-                        val y = oy + dy
+                            val x = ox + dx
+                            val y = oy + dy
 
-                        val realm = row[String]("realms.name")
+                            val realm = row[String]("realms.name")
 
-                        val i = y * w + x
-                        val target = models.Realm.loadTiles(realm)(i)
+                            val i = y * w + x
+                            val target = models.Realm.loadTiles(realm)(i)
 
-                        models.Adventurer.moveDenialFor(new Position(ox, oy, realm), target) match {
-                            case Some(denial) => BadRequest(json.pretty(json.render(
-                                ("why" -> denial)
-                            ))).as("application/json")
-
-                            case None => {
-                                val rows = DB.withConnection { implicit c =>
-                                    SQL("""UPDATE adventurers
-                                           SET x = {x}, y = {y}
-                                           WHERE name = {name}""").on(
-                                        "name" -> adventurerName,
-                                        "x" -> x,
-                                        "y" -> y
-                                    ).execute()
-                                }
-
-                                Ok(json.pretty(json.render(
-                                    ("x" -> x) ~
-                                    ("y" -> y) ~
-                                    ("realm" -> realm)
+                            models.Adventurer.moveDenialFor(new Position(ox, oy, realm), target) match {
+                                case Some(denial) => BadRequest(json.pretty(json.render(
+                                    ("why" -> denial)
                                 ))).as("application/json")
+
+                                case None => {
+                                    val rows = DB.withConnection { implicit c =>
+                                        SQL("""UPDATE adventurers
+                                               SET x = {x}, y = {y}
+                                               WHERE name = {name}""").on(
+                                            "name" -> adventurerName,
+                                            "x" -> x,
+                                            "y" -> y
+                                        ).execute()
+                                    }
+
+                                    Ok(json.pretty(json.render(
+                                        ("x" -> x) ~
+                                        ("y" -> y) ~
+                                        ("realm" -> realm)
+                                    ))).as("application/json")
+                                }
                             }
                         }
-                    }
 
-                    case direction =>
-                        BadRequest(json.pretty(json.render(
-                            ("why" -> s"Sorry, but $direction isn't actually a direction.")
-                        ))).as("application/json")
+                        case direction =>
+                            BadRequest(json.pretty(json.render(
+                                ("why" -> s"Sorry, but $direction isn't actually a direction.")
+                            ))).as("application/json")
+                    }
                 }
             }
         }

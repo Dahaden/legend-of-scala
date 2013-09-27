@@ -12,72 +12,372 @@ import net.liftweb.json
 import net.liftweb.json.JsonDSL._
 import scala.util.Random
 import java.io.PrintWriter
+import java.sql.Connection
 
 object Realm {
-    def getRow(realmName : String) = {
-        DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT *
-                              FROM realms
-                              WHERE name = {name}""").on(
-                "name" -> realmName
+    def generateDungeonName() = {
+        val rand = new Random(System.currentTimeMillis)
+
+        val prefixes = List(
+            "Accursed",
+            "Ancient",
+            "Baneful",
+            "Batrachian",
+            "Black",
+            "Bloodstained",
+            "Cold",
+            "Dark",
+            "Devouring",
+            "Diabolical",
+            "Ebon",
+            "Eldritch",
+            "Forbidden",
+            "Forgotten",
+            "Haunted",
+            "Hidden",
+            "Lonely",
+            "Lost",
+            "Malevolent",
+            "Misplaced",
+            "Nameless",
+            "Ophidian",
+            "Scarlet",
+            "Secret",
+            "Shrouded",
+            "Squamous",
+            "Strange",
+            "Tenebrous",
+            "Uncanny",
+            "Unspeakable",
+            "Unvanquishable",
+            "Unwholesome",
+            "Vanishing",
+            "Weird"
+        )
+
+        val types = List(
+            "Abyss",
+            "Catacombs",
+            "Caverns",
+            "Citadel",
+            "City",
+            "Cyst",
+            "Depths",
+            "Dungeons",
+            "Fane",
+            "Fortress",
+            "Halls",
+            "Haunts",
+            "Isle",
+            "Keep",
+            "Labyrinth",
+            "Manse",
+            "Maze",
+            "Milieu",
+            "Mines",
+            "Mountain",
+            "Oubliette",
+            "Panopticon",
+            "Pits",
+            "Ruins",
+            "Sanctum",
+            "Shambles",
+            "Temple",
+            "Tower",
+            "Vault"
+        )
+
+        val suffixes = List(
+            "the Axolotl",
+            "Blood",
+            "Bones",
+            "Chaos",
+            "Curses",
+            "the Dead",
+            "Death",
+            "Demons",
+            "Despair",
+            "Deviltry",
+            "Doom",
+            "Evil",
+            "Fire",
+            "Frost",
+            "Gloom",
+            "Hells",
+            "Horrors",
+            "Ichor",
+            "Id Insinuation",
+            "Iron",
+            "Madness",
+            "Mirrors",
+            "Mists",
+            "Monsters",
+            "Mystery",
+            "Necromancy",
+            "Oblivion",
+            "Peril",
+            "Phantasms",
+            "Random Harlots",
+            "Secrets",
+            "Shadows",
+            "Sigils",
+            "Skulls",
+            "Slaughter",
+            "Sorcery",
+            "Syzygy",
+            "Terror",
+            "Torment",
+            "Treasure",
+            "the Undercity",
+            "the Underworld",
+            "the Unknown"
+        )
+
+        s"${prefixes(rand.nextInt(prefixes.length))} ${types(rand.nextInt(types.length))} of ${suffixes(rand.nextInt(suffixes.length))}"
+    }
+
+    def difficultyFor(terrain : String) = {
+        val rand = new Random(System.currentTimeMillis)
+
+        terrain match {
+            case "cave" => rand.nextInt(3) + 3
+            case "beach" | "temperate-rain-forest" | "desert-subtropical" | "grassland" | "tropical-rain-forest" | "coast" => 1
+            case "tropical-seasonal-forest" | "temperate-desert" | "taiga" | "marsh" | "temperate-deciduous-forest" | "lakeshore" => 2
+            case "bare" | "shrubland" => 3
+            case "tundra" | "scorched" => 4
+            case "snow" | "ice" => 5
+            case _ => 0
+        }
+    }
+
+    def spawnsFor(terrain : String) = {
+        val rand = new Random(System.currentTimeMillis)
+
+        terrain match {
+            case "cave" => List("ogre", "kobold", "elf")
+            case "coast" => List("kobold")
+            case "lakeshore" => List("elf")
+            case "marsh" => List("ogre", "kobold")
+            case "ice" => List("ogre", "kobold", "elf")
+            case "beach" => List("kobold")
+            case "snow" => List("ogre", "kobold", "elf")
+            case "tundra" => List("ogre")
+            case "bare" => List("ogre")
+            case "scorched" => List("ogre")
+            case "taiga" => List("ogre", "kobold", "elf")
+            case "shrubland" => List("ogre", "kobold", "elf")
+            case "temperate-desert" => List("kobold")
+            case "temperate-rain-forest" => List("elf")
+            case "temperate-deciduous-forest" => List("elf")
+            case "grassland" => List("kobold", "ogre")
+            case "subtropical-desert" => List("kobold")
+            case "tropical-rain-forest" => List("elf")
+            case "tropical-seasonal-forest" => List("elf")
+            case _ => List()
+        }
+    }
+
+    def dropsFor(difficulty : Int) : List[json.JValue] = {
+        val rand = new Random(System.currentTimeMillis)
+
+        (difficulty match {
+            case 1 => List(
+                (30, ("kind" -> "potion") : json.JValue)
             )
 
-            rows().toList match {
-                case Nil => None
-                case row::_ => Some(row)
+            case 2 => List(
+                (50, ("kind" -> "potion") : json.JValue),
+                (40, (("kind" -> "part") ~ ("attrs" -> ("type" -> "ingot"))) : json.JValue)
+            )
+            case 3 => List(
+                (60, ("kind" -> "potion") : json.JValue),
+                (30, (("kind" -> "part") ~ ("attrs" -> ("type" -> "ingot"))) : json.JValue),
+                (5, (("kind" -> "part") ~ ("attrs" -> ("type" -> "diamond"))) : json.JValue)
+            )
+            case 4 => List(
+                (60, ("kind" -> "potion") : json.JValue),
+                (40, (("kind" -> "part") ~ ("attrs" -> ("type" -> "ingot"))) : json.JValue),
+                (10, (("kind" -> "part") ~ ("attrs" -> ("type" -> "diamond"))) : json.JValue)
+            )
+            case 5 => List(
+                (70, ("kind" -> "potion") : json.JValue),
+                (50, (("kind" -> "part") ~ ("attrs" -> ("type" -> "diamond"))) : json.JValue)
+            )
+        }).flatMap { case (prob, item) =>
+            if (rand.nextInt(100) < prob) {
+                List(item)
+            } else {
+                List()
             }
         }
     }
 
-    def getFeatures(realmName : String, x : Int, y : Int) = {
-        DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT *
-                              FROM features, realms
-                              WHERE features.realm_id = realms.id AND
-                                    realms.name = {name} AND
-                                    features.x = {x} AND
-                                    features.y = {y}""").on(
-                "name" -> realmName,
-                "x" -> x,
-                "y" -> y
-            )
+    def makeMonster(realmName : String, x : Int, y : Int, isBoss : Boolean)(implicit c : Connection) = {
+        this.getRow(realmName) match {
+            case None => false
+            case Some(realm) => {
+                val tile = this.loadTiles(realmName)(y * realm[Int]("realms.w") + x)
 
-            rows().toList
+                val rand = new Random(System.currentTimeMillis)
+
+                val difficulty = Math.ceil(this.difficultyFor(tile.terrain) * (if (isBoss) 1.2 else 1.0)).toInt
+
+                val drops = this.dropsFor(difficulty)
+
+                val spawns = this.spawnsFor(tile.terrain)
+                val spawn = spawns(rand.nextInt(spawns.length))
+
+                // make boss at end of dungeon
+                SQL("""INSERT INTO monsters(kind, drops, hearts, max_hearts, damage, x, y, realm_id)
+                       VALUES ({kind}, {drops}, {hearts}, {hearts}, {damage}, {x}, {y}, {realmId})""").on(
+                    "kind" -> spawn,
+                    "drops" -> json.pretty(json.render(drops)),
+                    "x" -> x,
+                    "y" -> y,
+                    "hearts" -> Math.ceil(difficulty * 1.5).toInt,
+                    "damage" -> difficulty,
+                    "realmId" -> realm[Int]("realms.id")
+                ).execute()
+
+                true
+            }
         }
     }
 
-    def getMonsters(realmName : String, x : Int, y : Int) = {
-        DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT *
-                              FROM monsters, realms
-                              WHERE monsters.realm_id = realms.id AND
-                                    realms.name = {name} AND
-                                    monsters.x = {x} AND
-                                    monsters.y = {y}""").on(
-                "name" -> realmName,
-                "x" -> x,
-                "y" -> y
-            )
+    def makeRandomDungeonAt(realmName : String, x : Int, y : Int)(implicit c : Connection) = {
+        this.getRow(realmName) match {
+            case None => false
+            case Some(realm) => {
+                val rand = new Random(System.currentTimeMillis)
 
-            rows().toList
+                val dungeonName = this.generateDungeonName
+
+                val w = 30 + rand.nextInt(10) - 5
+                val h = 30 + rand.nextInt(10) - 5
+
+                // create realm
+                val dungeonId = SQL("""INSERT INTO realms(name, w, h)
+                                       VALUES({dungeonName}, {w}, {h})""").on(
+                    "dungeonName" -> dungeonName,
+                    "w" -> w,
+                    "h" -> h
+                ).executeInsert().get
+
+                val ((dsx, dsy), (dex, dey)) = this.generateDungeon(dungeonName, w, h)
+
+                // make entry portal
+                val portalId = SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
+                                      VALUES ('remote_only', {attrs}, {x}, {y}, {realmId})""").on(
+                    "attrs" -> json.pretty(json.render(
+                        ("behavior" -> "portal") ~
+                        ("target" -> (
+                            ("realm" -> dungeonName) ~
+                            ("x" -> dsx) ~
+                            ("y" -> dsy)
+                        ))
+                    )),
+                    "x" -> x,
+                    "y" -> y,
+                    "realmId" -> realm[Int]("realms.id")
+                ).executeInsert().get
+
+                // create creatures at every tile except (dex, dey)
+                val tiles = this.loadTiles(dungeonName)
+
+                tiles.zipWithIndex.filter({ case (tile, i) =>
+                    val x = i % w
+                    val y = i / w
+
+                    tile.terrain != "impassable" && (x, y) != (dex, dey)
+                }).foreach({ case (tile, i) =>
+                    val x = i % w
+                    val y = i / w
+
+                    this.makeMonster(dungeonName, x, y, false)
+                })
+
+                // TODO: make exit chest
+                // TODO: make boss
+
+                // make exit portal
+                SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
+                       VALUES ('remote_only', {attrs}, {x}, {y}, {realmId})""").on(
+                    "attrs" -> json.pretty(json.render(
+                        ("behavior" -> "portal") ~
+                        ("target" -> (
+                            ("realm" -> realmName) ~
+                            ("x" -> x) ~
+                            ("y" -> y)
+                        )) ~
+                        ("linked_portal_id" -> portalId)
+                    )),
+                    "x" -> dex,
+                    "y" -> dey,
+                    "realmId" -> dungeonId
+                ).executeInsert()
+
+                true
+            }
         }
     }
 
-    def getAdventurers(realmName : String, x : Int, y : Int) = {
-        DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT *
-                              FROM adventurers, realms
-                              WHERE adventurers.realm_id = realms.id AND
-                                    realms.name = {name} AND
-                                    adventurers.x = {x} AND
-                                    adventurers.y = {y}""").on(
-                "name" -> realmName,
-                "x" -> x,
-                "y" -> y
-           )
 
-            rows().toList
+    def getRow(realmName : String)(implicit c : Connection) = {
+        val rows = SQL("""SELECT *
+                          FROM realms
+                          WHERE name = {name}""").on(
+            "name" -> realmName
+        )
+
+        rows().toList match {
+            case Nil => None
+            case row::_ => Some(row)
         }
+    }
+
+    def getFeatures(realmName : String, x : Int, y : Int)(implicit c : Connection) = {
+        val rows = SQL("""SELECT *
+                          FROM features, realms
+                          WHERE features.realm_id = realms.id AND
+                                realms.name = {name} AND
+                                features.x = {x} AND
+                                features.y = {y}""").on(
+            "name" -> realmName,
+            "x" -> x,
+            "y" -> y
+        )
+
+        rows().toList
+    }
+
+    def getMonsters(realmName : String, x : Int, y : Int)(implicit c : Connection) = {
+        val rows = SQL("""SELECT *
+                          FROM monsters, realms
+                          WHERE monsters.realm_id = realms.id AND
+                                realms.name = {name} AND
+                                monsters.x = {x} AND
+                                monsters.y = {y}""").on(
+            "name" -> realmName,
+            "x" -> x,
+            "y" -> y
+        )
+
+        rows().toList
+    }
+
+    def getAdventurers(realmName : String, x : Int, y : Int)(implicit c : Connection) = {
+        val rows = SQL("""SELECT *
+                          FROM adventurers, realms
+                          WHERE adventurers.realm_id = realms.id AND
+                                realms.name = {name} AND
+                                adventurers.x = {x} AND
+                                adventurers.y = {y}""").on(
+            "name" -> realmName,
+            "x" -> x,
+            "y" -> y
+        )
+
+        rows().toList
     }
 
     private def fileNameForRealm(name : String) = s"maps/${name}.json"

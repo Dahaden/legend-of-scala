@@ -58,51 +58,51 @@ object RealmTileMonster extends Controller {
     }
 
     def attack(realmName : String, x : Int, y : Int, monsterId : Int) = Action(parse.tolerantText) { request =>
-        val adventurerOption = for {
-            (username, password) <- util.getBasicAuth(request)
-            row <- models.Adventurer.getAuthRow(username, password)
-        } yield row
+        DB.withTransaction { implicit c =>
+            val adventurerOption = for {
+                (username, password) <- util.getBasicAuth(request)
+                row <- models.Adventurer.getAuthRow(username, password)
+            } yield row
 
-        (for {
-            adventurer <- adventurerOption
-            monster <- this.getRow(realmName, x, y, monsterId)
-        } yield (adventurer, monster)) match {
-            case None => {
-                NotFound(json.pretty(json.render(
-                    ("why" -> s"Er, that doesn't exist anymore.")
-                ))).as("application/json")
-            }
+            (for {
+                adventurer <- adventurerOption
+                monster <- this.getRow(realmName, x, y, monsterId)
+            } yield (adventurer, monster)) match {
+                case None => {
+                    NotFound(json.pretty(json.render(
+                        ("why" -> s"Er, that doesn't exist anymore.")
+                    ))).as("application/json")
+                }
 
-            case Some((adventurer, monster)) => {
-                val js = json.parse(request.body)
-                implicit val formats = json.DefaultFormats
+                case Some((adventurer, monster)) => {
+                    val js = json.parse(request.body)
+                    implicit val formats = json.DefaultFormats
 
-                val weaponId = (js \ "weapon_id").extract[Int]
+                    val weaponId = (js \ "weapon_id").extract[Int]
 
-                models.Adventurer.getItem(weaponId, adventurer[String]("adventurers.name")) match {
-                    case None => {
-                        NotFound(json.pretty(json.render(
-                            ("why" -> s"Er, that doesn't exist anymore.")
-                        ))).as("application/json")
-                    }
+                    models.Adventurer.getItem(weaponId, adventurer[String]("adventurers.name")) match {
+                        case None => {
+                            NotFound(json.pretty(json.render(
+                                ("why" -> s"Er, that doesn't exist anymore.")
+                            ))).as("application/json")
+                        }
 
-                    case Some(weapon) if weapon[String]("items.kind") != "weapon" => {
-                        BadRequest(json.pretty(json.render(
-                            ("why" -> s"That's not a weapon.")
-                        ))).as("application/json")
-                    }
+                        case Some(weapon) if weapon[String]("items.kind") != "weapon" => {
+                            BadRequest(json.pretty(json.render(
+                                ("why" -> s"That's not a weapon.")
+                            ))).as("application/json")
+                        }
 
-                    case Some(weapon) => {
-                        val attrs = json.parse(weapon[String]("items.attrs"))
+                        case Some(weapon) => {
+                            val attrs = json.parse(weapon[String]("items.attrs"))
 
-                        val class_ = (attrs \ "class").extract[String]
-                        val material = (attrs \ "material").extract[String]
+                            val class_ = (attrs \ "class").extract[String]
+                            val material = (attrs \ "material").extract[String]
 
-                        val playerDamage = if (class_ != this.weaknessFor(monster[String]("monsters.kind"))) 0 else this.damageFor(material)
-                        val monsterHearts = monster[Int]("monsters.hearts") - playerDamage
+                            val playerDamage = if (class_ != this.weaknessFor(monster[String]("monsters.kind"))) 0 else this.damageFor(material)
+                            val monsterHearts = monster[Int]("monsters.hearts") - playerDamage
 
-                        if (monsterHearts <= 0) {
-                            DB.withTransaction { implicit c =>
+                            if (monsterHearts <= 0) {
                                 // give monster drops
                                 val json.JArray(drops) = json.parse(monster[String]("monsters.drops"))
 
@@ -111,7 +111,7 @@ object RealmTileMonster extends Controller {
                                 } SQL("""INSERT INTO items (kind, attrs, owner_id)
                                          VALUES ({kind}, {attrs}, {ownerId})""").on(
                                     "kind" -> (drop \ "kind").extract[String],
-                                    "attrs" -> json.pretty(json.render(drop \ "attrs")),
+                                    "attrs" -> json.pretty(json.render((drop \ "attrs").extract[Option[json.JObject]].getOrElse(json.JObject(List())))),
                                     "ownerId" -> adventurer[Int]("adventurers.id")
                                 ).executeInsert()
 
@@ -119,16 +119,14 @@ object RealmTileMonster extends Controller {
                                        WHERE id = {id}""").on(
                                     "id" -> monsterId
                                 ).execute()
-                            }
 
-                            Ok(json.pretty(json.render(
-                                ("why" -> s"${this.attackMessageFor(class_)} -- you slay the monster! You pick up some items that it dropped.")
-                            ))).as("application/json")
-                        } else {
-                            val monsterDamage = monster[Int]("monsters.damage")
-                            val playerHearts = adventurer[Int]("adventurers.hearts") - monsterDamage
+                                Ok(json.pretty(json.render(
+                                    ("why" -> (s"${this.attackMessageFor(class_)} -- you slay the monster!" + (if (drops.length > 0) " You pick up the items it dropped." else "")))
+                                ))).as("application/json")
+                            } else {
+                                val monsterDamage = monster[Int]("monsters.damage")
+                                val playerHearts = adventurer[Int]("adventurers.hearts") - monsterDamage
 
-                            DB.withTransaction { implicit c =>
                                 SQL("""UPDATE monsters
                                        SET hearts = {hearts}
                                        WHERE id = {id}""").on(
@@ -150,6 +148,14 @@ object RealmTileMonster extends Controller {
                                         "realm_id" -> adventurer[Int]("adventurers.spawn_realm_id"),
                                         "id" -> adventurer[Int]("adventurers.id")
                                     ).execute()
+
+                                    // reset the monster's hearts
+                                    SQL("""UPDATE monsters
+                                           SET hearts = {hearts}
+                                           WHERE id = {id}""").on(
+                                        "hearts" -> monster[Int]("monsters.max_hearts"),
+                                        "id" -> monsterId
+                                    ).execute()
                                 } else {
                                     SQL("""UPDATE adventurers
                                            SET hearts = {hearts}
@@ -158,21 +164,21 @@ object RealmTileMonster extends Controller {
                                         "id" -> adventurer[Int]("adventurers.id")
                                     ).execute()
                                 }
+
+                                val myTurnMessage = this.attackMessageFor(class_) + (playerDamage match {
+                                    case 0 => " -- it's not very effective!"
+                                    case 1 => " and deal 1 heart of damage."
+                                    case _ => s" and deal $playerDamage hearts of damage."
+                                })
+
+                                Ok(json.pretty(json.render(
+                                    ("why" -> (s"$myTurnMessage It retaliates, dealing $monsterDamage heart${if (monsterDamage > 1) "s" else ""} of damage." + (if (playerHearts <= 0)
+                                        " You have died. Fortunately, this game is forgiving and you've just ended up at where you started."
+                                    else
+                                        ""
+                                    )))
+                                ))).as("application/json")
                             }
-
-                            val myTurnMessage = this.attackMessageFor(class_) + (playerDamage match {
-                                case 0 => " -- it's not very effective!"
-                                case 1 => " and deal 1 heart of damage."
-                                case _ => s" and deal $playerDamage hearts of damage."
-                            })
-
-                            Ok(json.pretty(json.render(
-                                ("why" -> (s"$myTurnMessage It retaliates, dealing ${monsterDamage} heart${if (monsterDamage > 1) "s" else ""} of damage." + (if (playerHearts <= 0)
-                                    " You have died. Fortunately, this game is forgiving and you've just ended up at where you started."
-                                else
-                                    ""
-                                )))
-                            ))).as("application/json")
                         }
                     }
                 }

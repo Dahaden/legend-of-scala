@@ -15,20 +15,22 @@ object Realm extends Controller {
     def view(realmName : String) = Action { request =>
         implicit val formats = json.DefaultFormats
 
-        models.Realm.getRow(realmName) match {
-            case None => {
-                NotFound(json.pretty(json.render(
-                    ("why" -> s"No such realm.")
-                ))).as("application/json")
-            }
-            case Some(row) => {
-                Ok(json.pretty(json.render(
-                    ("id" -> row[Int]("realms.id")) ~
-                    ("name" -> row[String]("realms.name")) ~
-                    ("w" -> row[Int]("realms.w")) ~
-                    ("h" -> row[Int]("realms.h")) ~
-                    ("tiles" -> decompose(models.Realm.loadTiles(realmName)))
-                ))).as("application/json")
+        DB.withTransaction { implicit c =>
+            models.Realm.getRow(realmName) match {
+                case None => {
+                    NotFound(json.pretty(json.render(
+                        ("why" -> s"No such realm.")
+                    ))).as("application/json")
+                }
+                case Some(row) => {
+                    Ok(json.pretty(json.render(
+                        ("id" -> row[Int]("realms.id")) ~
+                        ("name" -> row[String]("realms.name")) ~
+                        ("w" -> row[Int]("realms.w")) ~
+                        ("h" -> row[Int]("realms.h")) ~
+                        ("tiles" -> decompose(models.Realm.loadTiles(realmName)))
+                    ))).as("application/json")
+                }
             }
         }
     }

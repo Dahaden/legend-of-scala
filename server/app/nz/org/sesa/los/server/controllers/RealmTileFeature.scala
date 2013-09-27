@@ -38,7 +38,6 @@ object RealmTileFeature extends Controller {
             }
         }
 
-        // XXX: this is silly, but whatever
         def unpackChest(adventurer : Row, items : json.JArray)(implicit c : Connection) = {
             implicit val formats = json.DefaultFormats
 
@@ -53,82 +52,82 @@ object RealmTileFeature extends Controller {
         }
     }
 
-    private def getRow(realmName : String, x : Int, y : Int, featureId : Int) = {
-        DB.withConnection { implicit c =>
-            val rows = SQL("""SELECT *
-                              FROM features, realms
-                              WHERE features.realm_id = realms.id AND
-                                    realms.name = {name} AND
-                                    features.x = {x} AND
-                                    features.y = {y} AND
-                                    features.id = {featureId}""").on(
-                "name" -> realmName,
-                "x" -> x,
-                "y" -> y,
-                "featureId" -> featureId
-            )
+    private def getRow(realmName : String, x : Int, y : Int, featureId : Int)(implicit c : Connection) = {
+        val rows = SQL("""SELECT *
+                          FROM features, realms
+                          WHERE features.realm_id = realms.id AND
+                                realms.name = {name} AND
+                                features.x = {x} AND
+                                features.y = {y} AND
+                                features.id = {featureId}""").on(
+            "name" -> realmName,
+            "x" -> x,
+            "y" -> y,
+            "featureId" -> featureId
+        )
 
-            rows().toList match {
-                case Nil => None
-                case row::_ => Some(row)
-            }
+        rows().toList match {
+            case Nil => None
+            case row::_ => Some(row)
         }
     }
 
     def view(realmName : String, x : Int, y : Int, featureId : Int) = Action { request =>
-        this.getRow(realmName, x, y, featureId) match {
-            case None => {
-                NotFound(json.pretty(json.render(
-                    ("why" -> s"Er, that doesn't exist anymore.")
-                ))).as("application/json")
-            }
-            case Some(row) => {
-                Ok(json.pretty(json.render(
-                    ("id" -> row[Int]("features.id")) ~
-                    ("kind" -> row[String]("features.kind")) ~
-                    ("attrs" -> json.parse(row[String]("features.attrs")))
-                ))).as("application/json")
+        DB.withTransaction { implicit c =>
+            this.getRow(realmName, x, y, featureId) match {
+                case None => {
+                    NotFound(json.pretty(json.render(
+                        ("why" -> s"Er, that doesn't exist anymore.")
+                    ))).as("application/json")
+                }
+                case Some(row) => {
+                    Ok(json.pretty(json.render(
+                        ("id" -> row[Int]("features.id")) ~
+                        ("kind" -> row[String]("features.kind")) ~
+                        ("attrs" -> json.parse(row[String]("features.attrs")))
+                    ))).as("application/json")
+                }
             }
         }
     }
 
     def use(realmName : String, x : Int, y : Int, featureId : Int) = Action(parse.tolerantText) { request =>
-        val adventurerOption = for {
-            (username, password) <- util.getBasicAuth(request)
-            row <- models.Adventurer.getAuthRow(username, password)
-        } yield row
+        DB.withTransaction { implicit c =>
+            val adventurerOption = for {
+                (username, password) <- util.getBasicAuth(request)
+                row <- models.Adventurer.getAuthRow(username, password)
+            } yield row
 
-        (for {
-            _ <- adventurerOption
-            row <- this.getRow(realmName, x, y, featureId)
-        } yield row) match {
-            case None => {
-                NotFound(json.pretty(json.render(
-                    ("why" -> s"Er, that doesn't exist anymore.")
-                ))).as("application/json")
-            }
-            case Some(row) => {
-                val kind = row[String]("features.kind")
-                val attrs = json.parse(row[String]("features.attrs"))
-
-                val monsters = models.Realm.getMonsters(realmName, x, y)
-
-                if (monsters.length > 0) {
-                    BadRequest(json.pretty(json.render(
-                        ("why" -> (if (monsters.length > 1) "Monsters block your way." else "A monster blocks your way."))
+            (for {
+                _ <- adventurerOption
+                row <- this.getRow(realmName, x, y, featureId)
+            } yield row) match {
+                case None => {
+                    NotFound(json.pretty(json.render(
+                        ("why" -> s"Er, that doesn't exist anymore.")
                     ))).as("application/json")
-                } else {
-                    // XXX: make this less arrow code-y
-                    kind match {
-                        case "remote_only" => {
-                            implicit val formats = json.DefaultFormats
+                }
+                case Some(row) => {
+                    val kind = row[String]("features.kind")
+                    val attrs = json.parse(row[String]("features.attrs"))
 
-                            val behavior = (attrs \ "behavior").extract[String]
-                            behavior match {
-                                case "portal" => {
-                                    adventurerOption match {
-                                        case Some(adventurer) => {
-                                            DB.withTransaction { implicit c =>
+                    val monsters = models.Realm.getMonsters(realmName, x, y)
+
+                    if (monsters.length > 0) {
+                        BadRequest(json.pretty(json.render(
+                            ("why" -> (if (monsters.length > 1) "Monsters block your way." else "A monster blocks your way."))
+                        ))).as("application/json")
+                    } else {
+                        // XXX: make this less arrow code-y
+                        kind match {
+                            case "remote_only" => {
+                                implicit val formats = json.DefaultFormats
+
+                                val behavior = (attrs \ "behavior").extract[String]
+                                behavior match {
+                                    case "portal" => {
+                                        adventurerOption match {
+                                            case Some(adventurer) => {
                                                 if (RemoteOnlyBehaviors.teleport(adventurer, (attrs \ "target").extract[Position])) {
                                                     // stop adventurers from visiting the same portal twice
                                                     (attrs \ "linked_portal_id").extract[Option[Int]] match {
@@ -150,40 +149,38 @@ object RealmTileFeature extends Controller {
                                                     ))).as("application/json")
                                                 }
                                             }
+                                            case None => BadRequest(json.pretty(json.render(
+                                                ("why" -> s"Need adventurer.")
+                                            ))).as("application/json")
                                         }
-                                        case None => BadRequest(json.pretty(json.render(
-                                            ("why" -> s"Need adventurer.")
-                                        ))).as("application/json")
                                     }
-                                }
 
-                                case "chest" => {
-                                    adventurerOption match {
-                                        case Some(adventurer) => {
-                                            DB.withTransaction { implicit c =>
+                                    case "chest" => {
+                                        adventurerOption match {
+                                            case Some(adventurer) => {
                                                 SQL("""DELETE FROM features
                                                        WHERE id = {featureId}""").on(
                                                     "featureId" -> featureId
                                                 ).execute
 
                                                 RemoteOnlyBehaviors.unpackChest(adventurer, (attrs \ "items").extract[json.JArray])
-                                            }
 
-                                            // XXX: yuck, we have to do this
-                                            Ok(json.pretty(json.render(
-                                                ("why" -> s"You open the chest and find some items.")
+                                                // XXX: yuck, we have to do this
+                                                Ok(json.pretty(json.render(
+                                                    ("why" -> s"You open the chest and find some items.")
+                                                ))).as("application/json")
+                                            }
+                                            case None => BadRequest(json.pretty(json.render(
+                                                ("why" -> s"Need adventurer.")
                                             ))).as("application/json")
                                         }
-                                        case None => BadRequest(json.pretty(json.render(
-                                            ("why" -> s"Need adventurer.")
-                                        ))).as("application/json")
                                     }
                                 }
                             }
+                            case _ => BadRequest(json.pretty(json.render(
+                                ("why" -> s"Can't use this feature.")
+                            ))).as("application/json")
                         }
-                        case _ => BadRequest(json.pretty(json.render(
-                            ("why" -> s"Can't use this feature.")
-                        ))).as("application/json")
                     }
                 }
             }

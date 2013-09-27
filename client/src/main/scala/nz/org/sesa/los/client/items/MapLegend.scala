@@ -28,7 +28,7 @@ private object MapLegend {
         "bare" -> 102,
         "scorched" -> 240,
         "taiga" -> 108,
-        "shrubland" -> 102,
+        "shrubland" -> 101,
         "temperate-desert" -> 186,
         "temperate-rain-forest" -> 65,
         "temperate-deciduous-forest" -> 65,
