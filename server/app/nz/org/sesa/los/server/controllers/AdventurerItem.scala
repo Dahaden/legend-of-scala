@@ -253,7 +253,6 @@ object AdventurerItem extends Controller {
                         ))).as("application/json")
                     }
                     case _ => BadRequest(json.pretty(json.render(
-                        // TODO: implement separations, probably from combines
                         ("why" -> s"Can't separate this item.")
                     ))).as("application/json")
                 }
