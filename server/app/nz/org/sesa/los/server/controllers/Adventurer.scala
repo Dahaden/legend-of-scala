@@ -78,9 +78,18 @@ object Adventurer extends Controller {
             SQL("""INSERT INTO monsters(kind, drops, hearts, max_hearts, x, y, realm_id)
                    VALUES ('ogre', {drops}, 2, 2, {x}, {y}, {dungeonId})""").on(
                 "drops" -> json.pretty(json.render(List(
-                    ("name" -> "map"),
-                    ("name" -> "map-legend"),
-                    ("name" -> "beacon")
+                    (
+                        ("kind" -> "map") ~
+                        ("attrs" -> new json.JObject(List()))
+                    ),
+                    (
+                        ("kind" -> "map-legend") ~
+                        ("attrs" -> new json.JObject(List()))
+                    ),
+                    (
+                        ("kind" -> "beacon") ~
+                        ("attrs" -> new json.JObject(List()))
+                    )
                 ))),
                 "x" -> dex,
                 "y" -> dey,

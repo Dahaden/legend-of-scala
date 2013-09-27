@@ -31,7 +31,7 @@ CREATE TABLE items(
     id INTEGER PRIMARY KEY AUTO_INCREMENT NOT NULL,
     kind VARCHAR(255) NOT NULL,
     owner_id INTEGER NOT NULL,
-    attrs TEXT,
+    attrs TEXT NOT NULL,
 
     FOREIGN KEY(owner_id) REFERENCES adventurers(id) ON DELETE CASCADE
 );
@@ -44,7 +44,7 @@ CREATE TABLE features(
     realm_id INTEGER NOT NULL,
 
     kind VARCHAR(255),
-    attrs TEXT,
+    attrs TEXT NOT NULL,
 
     FOREIGN KEY(realm_id) REFERENCES realms(id)
 );

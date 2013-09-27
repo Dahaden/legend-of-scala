@@ -43,25 +43,40 @@ object RealmTileMonster extends Controller {
         } yield row
 
         (for {
-            _ <- adventurerOption
+            adventurer <- adventurerOption
             row <- this.getRow(realmName, x, y, monsterId)
-        } yield row) match {
+        } yield (adventurer, row)) match {
             case None => {
                 NotFound(json.pretty(json.render(
                     ("why" -> s"Er, that doesn't exist anymore.")
                 ))).as("application/json")
             }
 
-            case Some(row) => {
+            case Some((adventurer, row)) => {
+                implicit val formats = json.DefaultFormats
+
                 // TODO: implement combat
                 DB.withTransaction { implicit c =>
+                    // give monster drops
+                    val json.JArray(drops) = json.parse(row[String]("monsters.drops"))
+
+                    for {
+                        drop <- drops
+                    } SQL("""INSERT INTO items (kind, attrs, owner_id)
+                             VALUES ({kind}, {attrs}, {ownerId})""").on(
+                        "kind" -> (drop \ "kind").extract[String],
+                        "attrs" -> json.pretty(json.render(drop \ "attrs")),
+                        "ownerId" -> adventurer[Int]("adventurers.id")
+                    ).executeInsert()
+
                     SQL("""DELETE FROM monsters
                            WHERE id = {id}""").on(
                         "id" -> monsterId
                     ).execute()
                 }
+
                 Ok(json.pretty(json.render(
-                    ("why" -> s"You slay the monster.")
+                    ("why" -> s"You slay the monster. You pick up some items that it dropped.")
                 ))).as("application/json")
             }
         }

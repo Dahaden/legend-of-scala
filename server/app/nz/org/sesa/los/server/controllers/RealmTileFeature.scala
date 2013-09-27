@@ -88,7 +88,7 @@ object RealmTileFeature extends Controller {
                 Ok(json.pretty(json.render(
                     ("id" -> row[Int]("features.id")) ~
                     ("kind" -> row[String]("features.kind")) ~
-                    ("attrs" -> json.parse(row[Option[String]]("features.attrs").getOrElse("{}")))
+                    ("attrs" -> json.parse(row[String]("features.attrs")))
                 ))).as("application/json")
             }
         }
@@ -111,7 +111,7 @@ object RealmTileFeature extends Controller {
             }
             case Some(row) => {
                 val kind = row[String]("features.kind")
-                val attrs = json.parse(row[Option[String]]("features.attrs").getOrElse("null"))
+                val attrs = json.parse(row[String]("features.attrs"))
 
                 val monsters = models.Realm.getMonsters(realmName, x, y)
 
