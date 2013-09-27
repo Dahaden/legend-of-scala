@@ -50,7 +50,7 @@ object Adventurer {
             "cave" -> "You're in some kind of cave system. It's pretty dark in here.",
             "impassable" -> "Wat.",
             "ocean" -> "It's the ocean. I have no idea how you got here.",
-            "coast" -> "Coast.",
+            "coast" -> "The ocean waves break upon the coast, spraying saltwater into your eyes.",
             "lakeshore" -> "The waves of the lake gently caress the shoreline. The lake is dyed a deep blue.",
             "lake" -> "You're in a lake. You're probably drowning.",
             "river" -> "You're in a river. How did you get here?",
@@ -63,8 +63,8 @@ object Adventurer {
             "bridge" -> 241,
             "lava" -> "AAH AAH AAH YOU'RE STANDING IN LAVA",
             "snow" -> "Everything around you is a brilliant shade of white as you find yourself in a field of snow, glistening in the sunlight.",
-            "tundra" -> "The land is a rusty red, baring witness to the snowy peaks of the formidable mountains in the distance.",
-            "bare" -> 102,
+            "tundra" -> "The land is a rusty red, bearing witness to the snowy peaks of the formidable mountains in the distance.",
+            "bare" -> "The land is barren and bare -- the high winds and unforgiving climate ravaging what little flora there is.",
             "scorched" -> 240,
             "taiga" -> 108,
             "shrubland" -> 102,
@@ -74,7 +74,7 @@ object Adventurer {
             "grassland" -> "Green blades of grass fill the land endlessly as they shake gently in the wind.",
             "subtropical-desert" -> 180,
             "tropical-rain-forest" -> 65,
-            "tropical-seasonal-forest" -> 65
+            "tropical-seasonal-forest" -> "The dirty green of the forest trees surround you amidst the dusty earth."
         )
 
         val Directions = List("north", "northeast", "east", "southeast", "south", "southwest", "west", "northwest")

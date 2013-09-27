@@ -14,6 +14,27 @@ import nz.org.sesa.los.server.models
 import nz.org.sesa.los.server.Position
 
 object RealmTileMonster extends Controller {
+    private def weaknessFor(name : String) = name match {
+        case "ogre" => "sword"
+        case "kobold" => "mace"
+        case "elf" => "spear"
+        case "dragon" => "ancient staff"
+    }
+
+    private def damageFor(material : String) = material match {
+        case "wood" => 1
+        case "iron" => 2
+        case "diamond" => 4
+        case "immaterial" => 8
+    }
+
+    private def attackMessageFor(class_ : String) = class_ match {
+        case "mace" => "You bludgeon the monster with your mace"
+        case "sword" => "You slice the monster with your sword"
+        case "spear" => "You stab the monster with your spear"
+        case "ancient staff" => "You cast a spell on the dragon with your staff"
+    }
+
     private def getRow(realmName : String, x : Int, y : Int, monsterId : Int) = {
         DB.withConnection { implicit c =>
             val rows = SQL("""SELECT *
@@ -37,7 +58,6 @@ object RealmTileMonster extends Controller {
     }
 
     def attack(realmName : String, x : Int, y : Int, monsterId : Int) = Action(parse.tolerantText) { request =>
-        // TODO: parse weapon_id from json body
         val adventurerOption = for {
             (username, password) <- util.getBasicAuth(request)
             row <- models.Adventurer.getAuthRow(username, password)
@@ -45,40 +65,86 @@ object RealmTileMonster extends Controller {
 
         (for {
             adventurer <- adventurerOption
-            row <- this.getRow(realmName, x, y, monsterId)
-        } yield (adventurer, row)) match {
+            monster <- this.getRow(realmName, x, y, monsterId)
+        } yield (adventurer, monster)) match {
             case None => {
                 NotFound(json.pretty(json.render(
                     ("why" -> s"Er, that doesn't exist anymore.")
                 ))).as("application/json")
             }
 
-            case Some((adventurer, row)) => {
+            case Some((adventurer, monster)) => {
+                val js = json.parse(request.body)
                 implicit val formats = json.DefaultFormats
 
-                // TODO: implement combat
-                DB.withTransaction { implicit c =>
-                    // give monster drops
-                    val json.JArray(drops) = json.parse(row[String]("monsters.drops"))
+                val weaponId = (js \ "weapon_id").extract[Int]
 
-                    for {
-                        drop <- drops
-                    } SQL("""INSERT INTO items (kind, attrs, owner_id)
-                             VALUES ({kind}, {attrs}, {ownerId})""").on(
-                        "kind" -> (drop \ "kind").extract[String],
-                        "attrs" -> json.pretty(json.render(drop \ "attrs")),
-                        "ownerId" -> adventurer[Int]("adventurers.id")
-                    ).executeInsert()
+                models.Adventurer.getItem(weaponId, adventurer[String]("adventurers.name")) match {
+                    case None => {
+                        NotFound(json.pretty(json.render(
+                            ("why" -> s"Er, that doesn't exist anymore.")
+                        ))).as("application/json")
+                    }
 
-                    SQL("""DELETE FROM monsters
-                           WHERE id = {id}""").on(
-                        "id" -> monsterId
-                    ).execute()
+                    case Some(weapon) if weapon[String]("items.kind") != "weapon" => {
+                        BadRequest(json.pretty(json.render(
+                            ("why" -> s"That's not a weapon.")
+                        ))).as("application/json")
+                    }
+
+                    case Some(weapon) => {
+                        val attrs = json.parse(weapon[String]("items.attrs"))
+
+                        val class_ = (attrs \ "class").extract[String]
+                        val material = (attrs \ "material").extract[String]
+
+                        if (class_ != this.weaknessFor(monster[String]("monsters.kind"))) {
+                            Ok(json.pretty(json.render(
+                                ("why" -> s"${this.attackMessageFor(class_)}. It didn't work...")
+                            ))).as("application/json")
+                        } else {
+                            val hearts = monster[Int]("hearts") - this.damageFor(material)
+
+                            if (hearts <= 0) {
+                                DB.withTransaction { implicit c =>
+                                    // give monster drops
+                                    val json.JArray(drops) = json.parse(monster[String]("monsters.drops"))
+
+                                    for {
+                                        drop <- drops
+                                    } SQL("""INSERT INTO items (kind, attrs, owner_id)
+                                             VALUES ({kind}, {attrs}, {ownerId})""").on(
+                                        "kind" -> (drop \ "kind").extract[String],
+                                        "attrs" -> json.pretty(json.render(drop \ "attrs")),
+                                        "ownerId" -> adventurer[Int]("adventurers.id")
+                                    ).executeInsert()
+
+                                    SQL("""DELETE FROM monsters
+                                           WHERE id = {id}""").on(
+                                        "id" -> monsterId
+                                    ).execute()
+                                }
+
+                                Ok(json.pretty(json.render(
+                                    ("why" -> s"${this.attackMessageFor(class_)} -- you slay the monster! You pick up some items that it dropped.")
+                                ))).as("application/json")
+                            } else {
+                                DB.withTransaction { implicit c =>
+                                    SQL("""UPDATE monsters
+                                           SET hearts = {hearts}
+                                           WHERE id = {id}""").on(
+                                        "hearts" -> hearts,
+                                        "id" -> monsterId
+                                    ).execute()
+                                }
+
+                                Ok(json.pretty(json.render(
+                                    ("why" -> s"${this.attackMessageFor(class_)} and deal ${this.damageFor(material)} heart${if (this.damageFor(material) > 1) "s" else ""} of damage.")
+                                ))).as("application/json")
+                            }
+                        }
+                    }
                 }
-
-                Ok(json.pretty(json.render(
-                    ("why" -> s"You slay the monster. You pick up some items that it dropped.")
-                ))).as("application/json")
             }
         }
     }
