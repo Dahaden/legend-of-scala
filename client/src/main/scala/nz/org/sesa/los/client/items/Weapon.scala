@@ -16,15 +16,21 @@ import scala.concurrent.duration._
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
 class Weapon(val id : Int, val owner : Adventurer, val material : String, val class_ : String) extends Item {
-    def name = {
-        val betterName = material match {
-            case "wood" => "wooden"
-            case _      => material
+    def name = class_ match {
+        case "ancient staff" => "ancient staff"
+        case _ => {
+            val betterName = material match {
+                case "wood" => "wooden"
+                case _      => material
+            }
+            s"$betterName $class_"
         }
-        s"$betterName $class_"
     }
 
-    def examine = s"It's a $class_ made of $material."
+    def examine = class_ match {
+        case "ancient staff" => "It's an ancient staff with ancient powers. It kind of looks like a fishing rod."
+        case _ => s"It's a $class_ made of $material."
+    }
 
     def image = io.Source.fromInputStream(this.getClass.getResourceAsStream(s"/images/${material}_${class_}.txt")).mkString
 
