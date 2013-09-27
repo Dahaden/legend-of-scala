@@ -274,7 +274,8 @@ object Realm {
                             ("realm" -> dungeonName) ~
                             ("x" -> dsx) ~
                             ("y" -> dsy)
-                        ))
+                        )) ~
+                        ("change_spawn" -> false)
                     )),
                     "x" -> x,
                     "y" -> y,
@@ -296,8 +297,55 @@ object Realm {
                     this.makeMonster(dungeonName, x, y, false)
                 })
 
-                // TODO: make exit chest
-                // TODO: make boss
+                val attrsRendered = json.pretty(json.render(
+                    ("behavior" -> "chest") ~
+                    ("items" -> List(
+                        (
+                            ("kind" -> "part") ~
+                            ("attrs" -> (
+                                ("type" -> "airGem")
+                            ))
+                        ),
+                        (
+                            ("kind" -> "part") ~
+                            ("attrs" -> (
+                                ("type" -> "waterGem")
+                            ))
+                        ),
+                        (
+                            ("kind" -> "part") ~
+                            ("attrs" -> (
+                                ("type" -> "fireGem")
+                            ))
+                        ),
+                        (
+                            ("kind" -> "part") ~
+                            ("attrs" -> (
+                                ("type" -> "earthGem")
+                            ))
+                        )
+                    ))
+                ))
+
+                // make two chests at end of dungeon
+                SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
+                       VALUES ('remote_only', {attrs}, {x}, {y}, {dungeonId})""").on(
+                    "attrs" -> attrsRendered,
+                    "x" -> dex,
+                    "y" -> dey,
+                    "dungeonId" -> dungeonId
+                ).execute()
+
+                SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
+                       VALUES ('remote_only', {attrs}, {x}, {y}, {dungeonId})""").on(
+                    "attrs" -> attrsRendered,
+                    "x" -> dex,
+                    "y" -> dey,
+                    "dungeonId" -> dungeonId
+                ).execute()
+
+                // make dungeon boss
+                this.makeMonster(dungeonName, dex, dey + 1, true)
 
                 // make exit portal
                 SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
@@ -309,7 +357,8 @@ object Realm {
                             ("x" -> x) ~
                             ("y" -> y)
                         )) ~
-                        ("linked_portal_id" -> portalId)
+                        ("linked_portal_id" -> portalId) ~
+                        ("change_spawn" -> false)
                     )),
                     "x" -> dex,
                     "y" -> dey,

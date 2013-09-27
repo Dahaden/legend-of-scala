@@ -33,6 +33,7 @@ class Part(val id : Int, val owner : Adventurer, type_ : String) extends Item {
     def image = io.Source.fromInputStream(this.getClass.getResourceAsStream(s"/images/${name}.txt")).mkString
 
     def action[T : TypeTag](args: Any*) = {
+        Display.show("Have you tried .combineing this with something else?")
         None
     }
 }

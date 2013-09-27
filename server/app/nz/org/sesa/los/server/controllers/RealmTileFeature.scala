@@ -15,16 +15,20 @@ import nz.org.sesa.los.server.Position
 
 object RealmTileFeature extends Controller {
     private object RemoteOnlyBehaviors {
-        def teleport(adventurer : Row, target : Position)(implicit c : Connection) = {
+        def teleport(adventurer : Row, target : Position, changeSpawn : Boolean)(implicit c : Connection) = {
             models.Realm.getRow(target.realm) match {
                 case Some(row) => {
                     SQL("""UPDATE adventurers
                            SET x = {x},
                                y = {y},
-                               realm_id = {realmId},
+                               realm_id = {realmId}""" + (
+                        if (changeSpawn) """,
                                spawn_x = {x},
                                spawn_y = {y},
-                               spawn_realm_id = {realmId}
+                               spawn_realm_id = {realmId}"""
+                        else
+                            ""
+                        ) + """
                            WHERE id = {adventurerId}""").on(
                         "x" -> target.x,
                         "y" -> target.y,
@@ -111,76 +115,69 @@ object RealmTileFeature extends Controller {
                     val kind = row[String]("features.kind")
                     val attrs = json.parse(row[String]("features.attrs"))
 
-                    val monsters = models.Realm.getMonsters(realmName, x, y)
+                    // XXX: make this less arrow code-y
+                    kind match {
+                        case "remote_only" => {
+                            implicit val formats = json.DefaultFormats
 
-                    if (monsters.length > 0) {
-                        BadRequest(json.pretty(json.render(
-                            ("why" -> (if (monsters.length > 1) "Monsters block your way." else "A monster blocks your way."))
-                        ))).as("application/json")
-                    } else {
-                        // XXX: make this less arrow code-y
-                        kind match {
-                            case "remote_only" => {
-                                implicit val formats = json.DefaultFormats
-
-                                val behavior = (attrs \ "behavior").extract[String]
-                                behavior match {
-                                    case "portal" => {
-                                        adventurerOption match {
-                                            case Some(adventurer) => {
-                                                if (RemoteOnlyBehaviors.teleport(adventurer, (attrs \ "target").extract[Position])) {
-                                                    // stop adventurers from visiting the same portal twice
-                                                    (attrs \ "linked_portal_id").extract[Option[Int]] match {
-                                                        case None => { }
-                                                        case Some(portalId) => {
-                                                            SQL("""DELETE FROM features
-                                                                   WHERE id = {portalId}""").on(
-                                                                "portalId" -> portalId
-                                                            ).execute
-                                                        }
+                            val behavior = (attrs \ "behavior").extract[String]
+                            behavior match {
+                                case "portal" => {
+                                    adventurerOption match {
+                                        case Some(adventurer) => {
+                                            if (RemoteOnlyBehaviors.teleport(adventurer, (attrs \ "target").extract[Position],
+                                                                             (attrs \ "change_spawn").extract[Option[Boolean]].getOrElse(false))) {
+                                                // stop adventurers from visiting the same portal twice
+                                                (attrs \ "linked_portal_id").extract[Option[Int]] match {
+                                                    case None => { }
+                                                    case Some(portalId) => {
+                                                        SQL("""DELETE FROM features
+                                                               WHERE id = {portalId}""").on(
+                                                            "portalId" -> portalId
+                                                        ).execute
                                                     }
-
-                                                    Ok(json.pretty(json.render(
-                                                        ("why" -> s"Whoosh! Your surroundings disappear as you hurtle through the portal into a new realm.")
-                                                    ))).as("application/json")
-                                                } else {
-                                                    BadRequest(json.pretty(json.render(
-                                                        ("why" -> s"Teleport failed?")
-                                                    ))).as("application/json")
                                                 }
-                                            }
-                                            case None => BadRequest(json.pretty(json.render(
-                                                ("why" -> s"Need adventurer.")
-                                            ))).as("application/json")
-                                        }
-                                    }
 
-                                    case "chest" => {
-                                        adventurerOption match {
-                                            case Some(adventurer) => {
-                                                SQL("""DELETE FROM features
-                                                       WHERE id = {featureId}""").on(
-                                                    "featureId" -> featureId
-                                                ).execute
-
-                                                RemoteOnlyBehaviors.unpackChest(adventurer, (attrs \ "items").extract[json.JArray])
-
-                                                // XXX: yuck, we have to do this
                                                 Ok(json.pretty(json.render(
-                                                    ("why" -> s"You open the chest and find some items.")
+                                                    ("why" -> s"Whoosh! Your surroundings disappear as you hurtle through the portal into a new realm.")
+                                                ))).as("application/json")
+                                            } else {
+                                                BadRequest(json.pretty(json.render(
+                                                    ("why" -> s"Teleport failed?")
                                                 ))).as("application/json")
                                             }
-                                            case None => BadRequest(json.pretty(json.render(
-                                                ("why" -> s"Need adventurer.")
+                                        }
+                                        case None => BadRequest(json.pretty(json.render(
+                                            ("why" -> s"Need adventurer.")
+                                        ))).as("application/json")
+                                    }
+                                }
+
+                                case "chest" => {
+                                    adventurerOption match {
+                                        case Some(adventurer) => {
+                                            SQL("""DELETE FROM features
+                                                   WHERE id = {featureId}""").on(
+                                                "featureId" -> featureId
+                                            ).execute
+
+                                            RemoteOnlyBehaviors.unpackChest(adventurer, (attrs \ "items").extract[json.JArray])
+
+                                            // XXX: yuck, we have to do this
+                                            Ok(json.pretty(json.render(
+                                                ("why" -> s"You open the chest and find some items.")
                                             ))).as("application/json")
                                         }
+                                        case None => BadRequest(json.pretty(json.render(
+                                            ("why" -> s"Need adventurer.")
+                                        ))).as("application/json")
                                     }
                                 }
                             }
-                            case _ => BadRequest(json.pretty(json.render(
-                                ("why" -> s"Can't use this feature.")
-                            ))).as("application/json")
                         }
+                        case _ => BadRequest(json.pretty(json.render(
+                            ("why" -> s"Can't use this feature.")
+                        ))).as("application/json")
                     }
                 }
             }

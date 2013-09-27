@@ -81,6 +81,14 @@ object Adventurer extends Controller {
                 "dungeonId" -> dungeonId
             ).execute()
 
+            // force player to get weapon parts
+            SQL("""INSERT INTO monsters(kind, drops, hearts, max_hearts, damage, x, y, realm_id)
+                   VALUES ('ogre', '[]', 1, 1, 0, {x}, {y}, {dungeonId})""").on(
+                "x" -> dsx,
+                "y" -> dsy,
+                "dungeonId" -> dungeonId
+            ).execute()
+
             // make boss at end of dungeon
             SQL("""INSERT INTO monsters(kind, drops, hearts, max_hearts, damage, x, y, realm_id)
                    VALUES ('ogre', {drops}, 2, 2, 1, {x}, {y}, {dungeonId})""").on(
@@ -99,7 +107,7 @@ object Adventurer extends Controller {
                     )
                 ))),
                 "x" -> dex,
-                "y" -> dey,
+                "y" -> (dey + 1),
                 "dungeonId" -> dungeonId
             ).execute()
 
@@ -118,16 +126,22 @@ object Adventurer extends Controller {
                    VALUES ('remote_only', {attrs}, {x}, {y}, {dungeonId})""").on(
                 "attrs" -> json.pretty(json.render(
                     ("behavior" -> "portal") ~
+
+
                     ("target" -> (
                         ("realm" -> "world") ~
                         ("x" -> x) ~
                         ("y" -> y)
-                    ))
+                    )) ~
+                    ("change_spawn" -> true)
                 )),
                 "x" -> dex,
                 "y" -> dey,
                 "dungeonId" -> dungeonId
             ).execute()
+
+            // generate a nearby dungeon
+            models.Realm.makeRandomDungeonAt("world", x, y)
 
             // make adventurer
             val id = SQL("""INSERT INTO adventurers(name, token, x, y, realm_id, spawn_x, spawn_y, spawn_realm_id, hearts)
