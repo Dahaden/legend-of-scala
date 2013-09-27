@@ -76,6 +76,28 @@ object AdventurerItem extends Controller {
             ))).as("application/json")
         } else {
             (() match {
+                case _ if slots == Set("shaft", "fireGem", "waterGem", "earthGem", "airGem") => {
+                    // ancient staff
+                    val shaft = items.get("shaft").head // tee hee
+                    val fireGem = items.get("fireGem").head
+                    val waterGem = items.get("waterGem").head
+                    val earthGem = items.get("earthGem").head
+                    val airGem = items.get("airGem").head
+
+                    if (shaft[String]("items.kind") != "part" || (json.parse(shaft[String]("items.attrs")) \ "type").extract[String] != "stick") {
+                        None
+                    } else {
+                        if (List(fireGem, waterGem, earthGem, airGem).zip(List("fire gem", "water gem", "earth gem", "air gem")).forall({ case (item, type_) =>
+                            item[String]("items.kind") == "part" && (json.parse(item[String]("items.attrs")) \ "type").extract[String] == type_
+                        })) {
+                            Some(("weapon", (
+                                ("class" -> "ancient staff") ~
+                                ("material" -> "immaterial")
+                            )))
+                        } else None
+                    }
+                }
+
                 case _ if slots == Set("head", "handle") => {
                     // mace
                     val handle = items.get("handle").head

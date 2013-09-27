@@ -15,6 +15,9 @@ case class Monster(val id : Int, val kind : String, val hearts : Int, val maxHea
     def image = io.Source.fromInputStream(this.getClass.getResourceAsStream(s"/images/${this.name}.txt")).mkString
     def weakness = kind match {
         case "ogre" => "sword"
+        case "kobold" => "mace"
+        case "elf" => "spear"
+        case "dragon" => "ancient staff"
     }
 
     override def toString = s"""
