@@ -37,6 +37,7 @@ object RealmTileMonster extends Controller {
     }
 
     def attack(realmName : String, x : Int, y : Int, monsterId : Int) = Action(parse.tolerantText) { request =>
+        // TODO: parse weapon_id from json body
         val adventurerOption = for {
             (username, password) <- util.getBasicAuth(request)
             row <- models.Adventurer.getAuthRow(username, password)
