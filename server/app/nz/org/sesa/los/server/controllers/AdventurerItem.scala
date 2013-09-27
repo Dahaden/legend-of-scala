@@ -217,40 +217,61 @@ object AdventurerItem extends Controller {
 
                 row[String]("items.kind") match {
                     case "weapon" => {
-                        val rest = (attrs \ "material").extract[String] match {
-                            case "wood" => "plank"
-                            case "iron" => "ingot"
-                            case "diamond" => "diamond"
+                        val class_ = (attrs \ "class").extract[String]
+
+                        class_ match {
+                            case "mace" | "spear" | "sword" => {
+                                val rest = (attrs \ "material").extract[String] match {
+                                    case "wood" => "plank"
+                                    case "iron" => "ingot"
+                                    case "diamond" => "diamond"
+                                }
+
+                                Ok(json.pretty(json.render(
+                                    "item_ids" -> DB.withTransaction { implicit c =>
+                                        SQL("""DELETE FROM items
+                                               WHERE id = {id}""").on(
+                                            "id" -> row[Int]("items.id")
+                                        ).execute()
+
+                                        for {
+                                            type_ <- List("stick", rest)
+                                        } yield SQL("""INSERT INTO items (kind, owner_id, attrs)
+                                                       VALUES ('part', {ownerId}, {attrs})""").on(
+                                            "ownerId" -> row[Int]("items.owner_id"),
+                                            "attrs" -> json.pretty(json.render(
+                                                "type" -> type_
+                                            ))
+                                        ).executeInsert().get
+                                    }
+                                ))).as("application/json")
+                            }
+
+                            case "ancient staff" => {
+                                Ok(json.pretty(json.render(
+                                    "item_ids" -> DB.withTransaction { implicit c =>
+                                        SQL("""DELETE FROM items
+                                               WHERE id = {id}""").on(
+                                            "id" -> row[Int]("items.id")
+                                        ).execute()
+
+                                        for {
+                                            type_ <- List("fire gem", "water gem", "earth gem", "air gem", "stick")
+                                        } yield SQL("""INSERT INTO items (kind, owner_id, attrs)
+                                                       VALUES ('part', {ownerId}, {attrs})""").on(
+                                            "ownerId" -> row[Int]("items.owner_id"),
+                                            "attrs" -> json.pretty(json.render(
+                                                "type" -> type_
+                                            ))
+                                        ).executeInsert().get
+                                    }
+                                ))).as("application/json")
+                            }
+
+                            case _ =>  BadRequest(json.pretty(json.render(
+                                ("why" -> s"Can't separate this item.")
+                            ))).as("application/json")
                         }
-
-                        val itemIds = DB.withTransaction { implicit c =>
-                            val stickId = SQL("""INSERT INTO items (kind, owner_id, attrs)
-                                                 VALUES ('part', {ownerId}, {attrs})""").on(
-                                "ownerId" -> row[Int]("items.owner_id"),
-                                "attrs" -> json.pretty(json.render(
-                                    "type" -> "stick"
-                                ))
-                            ).executeInsert().get
-
-                            val restId = SQL("""INSERT INTO items (kind, owner_id, attrs)
-                                                VALUES ('part', {ownerId}, {attrs})""").on(
-                                "ownerId" -> row[Int]("items.owner_id"),
-                                "attrs" -> json.pretty(json.render(
-                                    "type" -> rest
-                                ))
-                            ).executeInsert().get
-
-                            SQL("""DELETE FROM items
-                                   WHERE id = {id}""").on(
-                                "id" -> row[Int]("items.id")
-                            ).execute()
-
-                           List(stickId, restId)
-                        }
-
-                        Ok(json.pretty(json.render(
-                            "item_ids" -> itemIds
-                        ))).as("application/json")
                     }
                     case _ => BadRequest(json.pretty(json.render(
                         ("why" -> s"Can't separate this item.")
