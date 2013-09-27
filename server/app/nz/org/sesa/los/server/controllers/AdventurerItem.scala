@@ -90,11 +90,11 @@ object AdventurerItem extends Controller {
                         if (shaft[String]("items.kind") != "part" || (json.parse(shaft[String]("items.attrs")) \ "type").extract[String] != "stick") {
                             None
                         } else {
-                            if (List(fireGem, waterGem, earthGem, airGem).zip(List("fire gem", "water gem", "earth gem", "air gem")).forall({ case (item, type_) =>
+                            if (List(fireGem, waterGem, earthGem, airGem).zip(List("fire_gem", "water_gem", "earth_gem", "air_gem")).forall({ case (item, type_) =>
                                 item[String]("items.kind") == "part" && (json.parse(item[String]("items.attrs")) \ "type").extract[String] == type_
                             })) {
                                 Some(("weapon", (
-                                    ("class" -> "ancient staff") ~
+                                    ("class" -> "ancient_staff") ~
                                     ("material" -> "immaterial")
                                 )))
                             } else None

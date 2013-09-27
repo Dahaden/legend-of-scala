@@ -17,7 +17,7 @@ import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
 class Weapon(val id : Int, val owner : Adventurer, val material : String, val class_ : String) extends Item {
     def name = class_ match {
-        case "ancient staff" => "ancient staff"
+        case "ancient_staff" => "ancient staff"
         case _ => {
             val betterName = material match {
                 case "wood" => "wooden"
