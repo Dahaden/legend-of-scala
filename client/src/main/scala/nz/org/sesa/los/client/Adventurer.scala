@@ -45,7 +45,6 @@ object Adventurer {
             "tropical-seasonal-forest" -> "Seasonal Forest, Tropical"
         )
 
-        // TODO: write the flavor text
         private val FlavorText = Map(
             "cave" -> "You're in some kind of cave system. It's pretty dark in here.",
             "impassable" -> "Wat.",
@@ -60,20 +59,20 @@ object Adventurer {
             "road1" -> "You're standing on a wide open road. You can see it trail off into the distance in both directions.",
             "road2" -> "You're standing on a wide open road. You can see it trail off into the distance in both directions.",
             "road3" -> "You're standing on a wide open road. You can see it trail off into the distance in both directions.",
-            "bridge" -> 241,
+            "bridge" -> "(unused)",
             "lava" -> "AAH AAH AAH YOU'RE STANDING IN LAVA",
             "snow" -> "Everything around you is a brilliant shade of white as you find yourself in a field of snow, glistening in the sunlight.",
             "tundra" -> "The land is a rusty red, bearing witness to the snowy peaks of the formidable mountains in the distance.",
             "bare" -> "The land is barren and bare -- the high winds and unforgiving climate ravaging what little flora there is.",
-            "scorched" -> 240,
-            "taiga" -> 108,
-            "shrubland" -> 102,
-            "temperate-desert" -> 186,
-            "temperate-rain-forest" -> 65,
-            "temperate-deciduous-forest" -> 65,
+            "scorched" -> "The land is burned and scorched, probably from recent lava flows.",
+            "taiga" -> "Pines and conifers surround you in the depths of the taiga.",
+            "shrubland" -> "Shrubbery is abound on the dusty land, with no trees in sight.",
+            "temperate-desert" -> "The sun is hot as it beats down on the land, with vegetation few and far between.",
+            "temperate-rain-forest" -> "Lush green trees fill the canopy overhead. The sticky, humid air clings to your skin.",
+            "temperate-deciduous-forest" -> "The turn of autumn has browned the leaves in this forest, but a few shades of green are still around.",
             "grassland" -> "Green blades of grass fill the land endlessly as they shake gently in the wind.",
-            "subtropical-desert" -> 180,
-            "tropical-rain-forest" -> 65,
+            "subtropical-desert" -> "The arid heat of the desert surrounds you as you walk through the dusty land.",
+            "tropical-rain-forest" -> "The lush canopy of the forest blocks out the sun above -- the green of leaves is all that is in sight.",
             "tropical-seasonal-forest" -> "The dirty green of the forest trees surround you amidst the dusty earth."
         )
 
