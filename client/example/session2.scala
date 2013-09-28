@@ -40,14 +40,17 @@ def autoexplore = {
 def autobattle = {
     while (me.look.monsters.length > 0) {
         val monster = me.look.monsters.head
-        var parts = weapon.separate.head
+        var parts = weapon.separate
 
         weapon = me.combine(monster.weakness match {
             case "sword" => new SwordMold(parts(0), parts(1))
             case "spear" => new SpearMold(parts(0), parts(1))
             case "mace" => new MaceMold(parts(0), parts(1))
-        })
+        }).head
 
         weapon.use(monster)
     }
 }
+
+autobattle
+me.move("north")

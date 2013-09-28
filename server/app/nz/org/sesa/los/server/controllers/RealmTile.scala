@@ -16,7 +16,6 @@ import nz.org.sesa.los.server.models
 object RealmTile extends Controller {
     def view(realmName : String, x : Int, y : Int) = Action { request =>
         DB.withTransaction { implicit c =>
-            //models.Realm.makeRandomDungeonAt(realmName, x, y)
             models.Realm.getRow(realmName) match {
                 case None => {
                     NotFound(json.pretty(json.render(

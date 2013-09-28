@@ -140,10 +140,6 @@ object Adventurer extends Controller {
                 "dungeonId" -> dungeonId
             ).execute()
 
-            // generate a nearby dungeon
-            // TODO: less nearby
-            models.Realm.makeRandomDungeonAt("world", x, y)
-
             // make adventurer
             val id = SQL("""INSERT INTO adventurers(name, token, x, y, realm_id, spawn_x, spawn_y, spawn_realm_id, hearts)
                             VALUES ({name}, {token}, {x}, {y}, {dungeonId}, {x}, {y}, {dungeonId}, 10)

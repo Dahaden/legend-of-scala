@@ -220,9 +220,9 @@ object Realm {
 
                 val rand = new Random(System.currentTimeMillis)
 
-                val difficulty = Math.ceil(this.difficultyFor(tile.terrain) * (if (isBoss) 1.2 else 1.0)).toInt
+                val drops = this.dropsFor(this.difficultyFor(tile.terrain))
 
-                val drops = this.dropsFor(difficulty)
+                val difficulty = Math.ceil(this.difficultyFor(tile.terrain) * (if (isBoss) 1.2 else 1.0)).toInt
 
                 val spawns = this.spawnsFor(tile.terrain)
                 val spawn = spawns(rand.nextInt(spawns.length))
@@ -250,7 +250,10 @@ object Realm {
             case Some(realm) => {
                 val rand = new Random(System.currentTimeMillis)
 
-                val dungeonName = this.generateDungeonName
+                var dungeonName = this.generateDungeonName
+                while (SQL("""SELECT * FROM realms WHERE name = {dungeonName}""").on("dungeonName" -> dungeonName)().toList.length > 0) {
+                    dungeonName = this.generateDungeonName
+                }
 
                 val w = 30 + rand.nextInt(10) - 5
                 val h = 30 + rand.nextInt(10) - 5
@@ -297,34 +300,36 @@ object Realm {
                     this.makeMonster(dungeonName, x, y, false)
                 })
 
+                val gems = rand.shuffle(List(
+                    (
+                        ("kind" -> "part") ~
+                        ("attrs" -> (
+                            ("type" -> "air gem")
+                        ))
+                    ),
+                    (
+                        ("kind" -> "part") ~
+                        ("attrs" -> (
+                            ("type" -> "water gem")
+                        ))
+                    ),
+                    (
+                        ("kind" -> "part") ~
+                        ("attrs" -> (
+                            ("type" -> "fire gem")
+                        ))
+                    ),
+                    (
+                        ("kind" -> "part") ~
+                        ("attrs" -> (
+                            ("type" -> "earth gem")
+                        ))
+                    )
+                ))
+
                 val attrsRendered = json.pretty(json.render(
                     ("behavior" -> "chest") ~
-                    ("items" -> List(
-                        (
-                            ("kind" -> "part") ~
-                            ("attrs" -> (
-                                ("type" -> "air gem")
-                            ))
-                        ),
-                        (
-                            ("kind" -> "part") ~
-                            ("attrs" -> (
-                                ("type" -> "water gem")
-                            ))
-                        ),
-                        (
-                            ("kind" -> "part") ~
-                            ("attrs" -> (
-                                ("type" -> "fire gem")
-                            ))
-                        ),
-                        (
-                            ("kind" -> "part") ~
-                            ("attrs" -> (
-                                ("type" -> "earth gem")
-                            ))
-                        )
-                    ))
+                    ("items" -> List(gems(0), gems(1)))
                 ))
 
                 // make two chests at end of dungeon
