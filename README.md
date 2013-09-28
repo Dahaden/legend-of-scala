@@ -41,3 +41,5 @@ Logo by Henry de Chabert
 Monster faces from http://charas-project.net/
 
 Item icons adapted from http://www.planetminecraft.com/texture_pack/-pixbits-texture-pack-frenden-inspired-and-approved-texture-pack/
+
+Dragon from http://opengameart.org/content/dragon-1
