@@ -21,17 +21,33 @@ def oppositeDirectionOf(d : String) = {
     }
 }
 
-var trail : List[String] = Nil
+def autoexplore = {
+    var trail : List[String] = Nil
 
-while (me.look.exits.length > 0) {
-    val exits = me.look.exits
-    val next = trail match {
-        case Nil => exits.head
-        case d::_ => exits.find({ d2 => d != oppositeDirectionOf(d2) }).head
+    while (me.look.exits.length > 0) {
+        val exits = me.look.exits
+        val next = trail match {
+            case Nil => exits.head
+            case d::_ => exits.find({ d2 =>
+                d != oppositeDirectionOf(d2)
+            }).head
+        }
+        trail = next :: trail
+        me.move(next)
     }
-    trail = next :: trail
-    me.move(next)
 }
 
-me.inventory(0).use(me.look.monsters(0))
-me.inventory(0).use(me.look.monsters(0))
+def autobattle = {
+    while (me.look.monsters.length > 0) {
+        val monster = me.look.monsters.head
+        var parts = weapon.separate.head
+
+        weapon = me.combine(monster.weakness match {
+            case "sword" => new SwordMold(parts(0), parts(1))
+            case "spear" => new SpearMold(parts(0), parts(1))
+            case "mace" => new MaceMold(parts(0), parts(1))
+        })
+
+        weapon.use(monster)
+    }
+}

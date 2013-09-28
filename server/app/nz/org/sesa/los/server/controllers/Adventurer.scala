@@ -91,7 +91,7 @@ object Adventurer extends Controller {
 
             // make boss at end of dungeon
             SQL("""INSERT INTO monsters(kind, drops, hearts, max_hearts, damage, x, y, realm_id)
-                   VALUES ('ogre', {drops}, 2, 2, 1, {x}, {y}, {dungeonId})""").on(
+                   VALUES ('kobold', {drops}, 2, 2, 1, {x}, {y}, {dungeonId})""").on(
                 "drops" -> json.pretty(json.render(List(
                     (
                         ("kind" -> "map") ~
