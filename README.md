@@ -33,3 +33,11 @@ SBT is bundled with the repo.
 
 There isn't really one, sorry `:(` I might get around to writing one if this
 idea is actually good.
+
+## Attribution
+
+Logo by Henry de Chabert
+
+Monster faces from http://charas-project.net/
+
+Item icons adapted from http://www.planetminecraft.com/texture_pack/-pixbits-texture-pack-frenden-inspired-and-approved-texture-pack/
