@@ -2,12 +2,12 @@
 
 _A (sort of) educational game for learning Scala._
 
-# Overview
+## Overview
 
 _Legend of Scala_ is a mildly educational video game for learning Scala. The
 code is mildly terrible (it's my first time using Scala so please be gentle).
 
-## Running the Server
+### Running the Server
 
 Play Framework needs to be installed.
 
@@ -21,7 +21,7 @@ Play Framework needs to be installed.
 
 4. `play run`
 
-## Running the Client
+### Running the Client
 
 SBT is bundled with the repo.
 
