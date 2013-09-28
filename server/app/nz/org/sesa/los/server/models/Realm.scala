@@ -145,7 +145,8 @@ object Realm {
             case "tropical-seasonal-forest" | "temperate-desert" | "taiga" | "marsh" | "temperate-deciduous-forest" | "lakeshore" => 2
             case "bare" | "shrubland" => 3
             case "tundra" | "scorched" => 4
-            case "snow" | "ice" => 5
+            case "ice" => 5
+            case "snow" => 0 // endgame dungeon
             case _ => 0
         }
     }
@@ -160,7 +161,6 @@ object Realm {
             case "marsh" => List("ogre", "kobold")
             case "ice" => List("ogre", "kobold", "elf")
             case "beach" => List("kobold")
-            case "snow" => List("ogre", "kobold", "elf")
             case "tundra" => List("ogre")
             case "bare" => List("ogre")
             case "scorched" => List("ogre")

@@ -13,12 +13,8 @@ import scala.concurrent.duration._
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
 object Beacon {
-    case class Signal(val pos : Position, val name : String, val kind : String) {
-        override def toString = s"Signal(.pos = $pos, .kind = $kind, .name = $name)"
-    }
-
-    object Signal {
-        val Adventurer : String = "adventurer"
+    case class Signal(val pos : Position, val name : String) {
+        override def toString = s"Signal(.pos = $pos, .name = $name)"
     }
 }
 
@@ -42,7 +38,7 @@ class Beacon(val id : Int, val owner : Adventurer) extends Item {
                 val pos = (adventurer \ "pos").extract[Position]
                 val name = (adventurer \ "name").extract[String]
 
-                new Beacon.Signal(pos, name, Beacon.Signal.Adventurer)
+                new Beacon.Signal(pos, name)
             }).asInstanceOf[T])
         }
     }
