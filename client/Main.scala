@@ -21,7 +21,6 @@ package object los {
     val login = Adventurer.login(_, _)
 
     val Markers = util.Markers
-    val Features = util.Features
     type Item = client.Item
     type Tile = items.Map.Tile
     type Signal = items.Beacon.Signal
