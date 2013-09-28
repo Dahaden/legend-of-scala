@@ -15,7 +15,7 @@ import scala.concurrent.duration._
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
 class Part(val id : Int, val owner : Adventurer, type_ : String) extends Item {
-    def name = type_.replace("_", " ")
+    def name = type_
 
     def examine = {
         type_ match {

@@ -303,25 +303,25 @@ object Realm {
                         (
                             ("kind" -> "part") ~
                             ("attrs" -> (
-                                ("type" -> "airGem")
+                                ("type" -> "air gem")
                             ))
                         ),
                         (
                             ("kind" -> "part") ~
                             ("attrs" -> (
-                                ("type" -> "waterGem")
+                                ("type" -> "water gem")
                             ))
                         ),
                         (
                             ("kind" -> "part") ~
                             ("attrs" -> (
-                                ("type" -> "fireGem")
+                                ("type" -> "fire gem")
                             ))
                         ),
                         (
                             ("kind" -> "part") ~
                             ("attrs" -> (
-                                ("type" -> "earthGem")
+                                ("type" -> "earth gem")
                             ))
                         )
                     ))
