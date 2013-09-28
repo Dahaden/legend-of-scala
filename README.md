@@ -1,4 +1,4 @@
-![Logo](/tools/art/splash.png)
+## ![Logo](/tools/art/splash.png) The Legend of Scala
 
 _A (sort of) educational game for learning Scala._
 
