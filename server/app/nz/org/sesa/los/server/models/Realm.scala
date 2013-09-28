@@ -256,8 +256,8 @@ object Realm {
                     dungeonName = this.generateDungeonName
                 }
 
-                val w = 30 + rand.nextInt(10) - 5
-                val h = 30 + rand.nextInt(10) - 5
+                val w = 10
+                val h = 10
 
                 // create realm
                 val dungeonId = SQL("""INSERT INTO realms(name, w, h)
