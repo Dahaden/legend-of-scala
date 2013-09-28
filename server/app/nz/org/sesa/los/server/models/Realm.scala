@@ -182,7 +182,8 @@ object Realm {
 
         (difficulty match {
             case 1 => List(
-                (30, ("kind" -> "potion") : json.JValue)
+                (30, ("kind" -> "potion") : json.JValue),
+                (20, (("kind" -> "part") ~ ("attrs" -> ("type" -> "ingot"))) : json.JValue)
             )
 
             case 2 => List(
