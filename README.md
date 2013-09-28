@@ -28,3 +28,8 @@ SBT is bundled with the repo.
 1. Set the environment variable `LOS_HOST` to the server's address.
 
 2. Run `./start.sh` in the client directory.
+
+## Tutorial
+
+There isn't really one, sorry `:(` I might get around to writing one if this
+idea is actually good.
