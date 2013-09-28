@@ -11,15 +11,11 @@ code is mildly terrible (it's my first time using Scala so please be gentle).
 
 Play Framework needs to be installed.
 
-1. Run `play run` in the server directory.
+1. Run `play` in the server directory.
 
-2. Go to the website address given in the console and follow the instructions
-   to evolve the database.
+2. Open the `console` to run `:load scripts/generate_feature.scala`.
 
-3. Stop `play run`, and open `play console` to run
-   `:load scripts/generate_feature.scala`.
-
-4. `play run`
+3. `run`
 
 ### Running the Client
 

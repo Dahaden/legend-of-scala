@@ -245,19 +245,23 @@ object Realm {
         }
     }
 
-    def makeRandomDungeonAt(realmName : String, x : Int, y : Int)(implicit c : Connection) = {
+    def makeRandomDungeonAt(realmName : String, x : Int, y : Int,
+                            w : Int = 10, h : Int = 10, endgame : Boolean = false,
+                            fork : Int = 5, stray : Int = 5)(implicit c : Connection) = {
         this.getRow(realmName) match {
             case None => false
             case Some(realm) => {
                 val rand = new Random(System.currentTimeMillis)
 
-                var dungeonName = this.generateDungeonName
-                while (SQL("""SELECT * FROM realms WHERE name = {dungeonName}""").on("dungeonName" -> dungeonName)().toList.length > 0) {
-                    dungeonName = this.generateDungeonName
+                val dungeonName = if (!endgame) {
+                    var name = this.generateDungeonName
+                    while (SQL("""SELECT * FROM realms WHERE name = {dungeonName}""").on("dungeonName" -> name)().toList.length > 0) {
+                        name = this.generateDungeonName
+                    }
+                    name
+                } else {
+                    "Endgame Dungeon"
                 }
-
-                val w = 10
-                val h = 10
 
                 // create realm
                 val dungeonId = SQL("""INSERT INTO realms(name, w, h)
@@ -267,7 +271,7 @@ object Realm {
                     "h" -> h
                 ).executeInsert().get
 
-                val ((dsx, dsy), (dex, dey)) = this.generateDungeon(dungeonName, w, h)
+                val ((dsx, dsy), (dex, dey)) = this.generateDungeon(dungeonName, w, h, fork, stray)
 
                 // make entry portal
                 val portalId = SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
@@ -351,7 +355,21 @@ object Realm {
                 ).execute()
 
                 // make dungeon boss
-                this.makeMonster(dungeonName, dex, dey + 1, true)
+                if (!endgame) {
+                    this.makeMonster(dungeonName, dex, dey + 1, true)
+                } else {
+                    // make boss at end of dungeon
+                    SQL("""INSERT INTO monsters(kind, drops, hearts, max_hearts, damage, x, y, realm_id)
+                           VALUES ({kind}, {drops}, {hearts}, {hearts}, {damage}, {x}, {y}, {realmId})""").on(
+                        "kind" -> "dragon",
+                        "drops" -> "[]",
+                        "x" -> x,
+                        "y" -> y,
+                        "hearts" -> 40,
+                        "damage" -> 8,
+                        "realmId" -> dungeonId
+                    ).execute()
+                }
 
                 // make exit portal
                 SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
@@ -457,8 +475,7 @@ object Realm {
     }
 
     def generateDungeon(name : String, width : Int, height : Int,
-                        minForks : Int = 5, maxForks : Int = 10,
-                        minStray : Int = 1, maxStray : Int = 5) = {
+                        fork : Int = 5, stray : Int = 5) = {
         val NORTH = 1
         val SOUTH = 2
         val WEST = 4
@@ -469,19 +486,18 @@ object Realm {
         val wthird = width / 3
         val hthird = height / 3
 
-        def generateDungeonMask(width : Int, height : Int) = {
-            var x = width / 2
-            var y = height - 1
+        def generateDungeonMask(w : Int, h : Int) = {
+            var x = w / 2
+            var y = h - 1
 
             var trunk : List[(Int, Int)] = List()
 
-            val n = width * height
+            val n = w * h
             val dungeonMask = Array.fill(n) {0}
 
-            dungeonMask(y * width + x) = SOUTH
+            dungeonMask(y * w + x) = SOUTH
 
             val sidewayed : Array[Option[(Int, Int)]] = Array.fill(n) {None}
-            val backwarded = Array.fill(n) {false}
 
             while (y > 0) {
                 trunk = (x, y) +: trunk
@@ -490,7 +506,7 @@ object Realm {
                     case None => List((1, 0), (-1, 0))
                     case Some(v) => List(v)
                 }) filter { case (dx, dy) =>
-                    x + dx >= 0 && x + dx < width
+                    x + dx >= 0 && x + dx < w
                 }
 
                 val (dx, dy) = opts(rand.nextInt(opts.length))
@@ -499,19 +515,19 @@ object Realm {
                 val ny = y + dy
 
                 if ((dx, dy) == (0, -1)) {
-                    dungeonMask(ny * width + nx)    |= SOUTH
-                    dungeonMask(y * width + x)      |= NORTH
+                    dungeonMask(ny * w + nx)    |= SOUTH
+                    dungeonMask(y * w + x)      |= NORTH
                 }
 
                 if ((dx, dy) == (1, 0)) {
-                    dungeonMask(ny * width + nx)    |= WEST
-                    dungeonMask(y * width + x)      |= EAST
+                    dungeonMask(ny * w + nx)    |= WEST
+                    dungeonMask(y * w + x)      |= EAST
                     sidewayed(y) = Some((1, 0))
                 }
 
                 if ((dx, dy) == (-1, 0)) {
-                    dungeonMask(ny * width + nx)    |= EAST
-                    dungeonMask(y * width + x)      |= WEST
+                    dungeonMask(ny * w + nx)    |= EAST
+                    dungeonMask(y * w + x)      |= WEST
                     sidewayed(y) = Some((-1, 0))
                 }
 
@@ -521,19 +537,19 @@ object Realm {
             }
 
             var branchable = rand.shuffle(trunk.slice(0, trunk.length - 1).filter { case (x, y) =>
-                (dungeonMask(y * width + x) & NORTH) != 0
+                (dungeonMask(y * w + x) & NORTH) != 0
             })
 
-            (minForks until Math.max(maxForks, branchable.length)) foreach { _ =>
+            (0 until Math.min(fork, branchable.length)) foreach { _ =>
                 var (x, y) = branchable.head
                 branchable = branchable.tail
 
                 breakable {
-                    (minStray until maxStray) foreach { _ =>
+                    (0 until stray) foreach { _ =>
                         val opts = List((0, -1), (1, 0), (-1, 0)).filter {case (dx, dy) =>
-                            x + dx >= 0 && x + dx < width &&
-                            y + dy >= 1 && y + dy < height - 1 &&
-                            dungeonMask((y + dy) * width + (x + dx)) == 0
+                            x + dx >= 0 && x + dx < w &&
+                            y + dy >= 1 && y + dy < h - 1 &&
+                            dungeonMask((y + dy) * w + (x + dx)) == 0
                         }
 
                         if (opts.length == 0) break
@@ -544,23 +560,23 @@ object Realm {
                         val ny = y + dy
 
                         if ((dx, dy) == (0, -1)) {
-                            dungeonMask(ny * width + nx)    |= SOUTH
-                            dungeonMask(y * width + x)      |= NORTH
+                            dungeonMask(ny * w + nx)    |= SOUTH
+                            dungeonMask(y * w + x)      |= NORTH
                         }
 
                         if ((dx, dy) == (0, 1)) {
-                            dungeonMask(ny * width + nx)    |= NORTH
-                            dungeonMask(y * width + x)      |= SOUTH
+                            dungeonMask(ny * w + nx)    |= NORTH
+                            dungeonMask(y * w + x)      |= SOUTH
                         }
 
                         if ((dx, dy) == (1, 0)) {
-                            dungeonMask(ny * width + nx)    |= WEST
-                            dungeonMask(y * width + x)      |= EAST
+                            dungeonMask(ny * w + nx)    |= WEST
+                            dungeonMask(y * w + x)      |= EAST
                         }
 
                         if ((dx, dy) == (-1, 0)) {
-                            dungeonMask(ny * width + nx)    |= EAST
-                            dungeonMask(y * width + x)      |= WEST
+                            dungeonMask(ny * w + nx)    |= EAST
+                            dungeonMask(y * w + x)      |= WEST
                         }
 
                         x = nx

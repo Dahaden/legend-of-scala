@@ -54,7 +54,7 @@ object Adventurer extends Controller {
                 "h" -> h
             ).executeInsert().get
 
-            val ((dsx, dsy), (dex, dey)) = models.Realm.generateDungeon(dungeonName, w, h, 0, 0, 0, 0)
+            val ((dsx, dsy), (dex, dey)) = models.Realm.generateDungeon(dungeonName, w, h, 0, 0)
 
             // make chest at start of dungeon
             SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)

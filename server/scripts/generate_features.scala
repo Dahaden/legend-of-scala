@@ -8,6 +8,8 @@ import scala.util.Random
 
 new StaticApplication(new java.io.File("."))
 
+evolutions.OfflineEvolutions.applyScript(new java.io.File("."), this.getClass.getClassLoader, "default")
+
 DB.withTransaction { implicit c =>
     val tiles = models.Realm.loadTiles("world").zipWithIndex
 
@@ -45,4 +47,15 @@ DB.withTransaction { implicit c =>
 
         models.Realm.makeRandomDungeonAt("world", x, y)
     }
+
+    // generate the endgame dungeon
+    print("generating endgame...")
+
+    val (tile, j) = tiles.find({case (tile, j) => tile.terrain == "snow"}).head
+
+    // XXX: LOL HARDCODED
+    val x = j % 150
+    val y = j / 150
+
+    models.Realm.makeRandomDungeonAt("world", x, y, 25, 25, true)
 }
