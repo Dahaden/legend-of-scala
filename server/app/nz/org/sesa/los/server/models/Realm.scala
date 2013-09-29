@@ -297,7 +297,7 @@ object Realm {
                     val x = i % w
                     val y = i / w
 
-                    tile.terrain != "impassable" && (x, y) != (dex, dey)
+                    tile.terrain != "impassable" && (x, y) != (dex, dey) && (x, y) != (dex, dey + 1)
                 }).foreach({ case (tile, i) =>
                     val x = i % w
                     val y = i / w
