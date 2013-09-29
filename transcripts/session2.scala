@@ -23,6 +23,10 @@ def oppositeDirectionOf(d : String) = {
 
 def autobattle = {
     while (me.look.monsters.length > 0) {
+        if (me.hearts <= 5) {
+            me.inventory.find(_.name == "potion").fold {()} {_.use}
+        }
+
         val monster = me.look.monsters.head
         var parts = weapon.separate
 
@@ -101,3 +105,7 @@ def d = move("east")
 def wd = move("northeast")
 def a = move("west")
 def sd = move("southeast")
+
+// weapon reassembly
+weapon = me.combine(new SwordMold(weapon.separate()(0), retrieve("ingot"))).head
+

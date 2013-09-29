@@ -334,7 +334,7 @@ object Realm {
 
                 val attrsRendered = json.pretty(json.render(
                     ("behavior" -> "chest") ~
-                    ("items" -> List(gems(0), gems(1)))
+                    ("items" -> List(gems(0), gems(1), gems(3)))
                 ))
 
                 // make two chests at end of dungeon
@@ -357,37 +357,37 @@ object Realm {
                 // make dungeon boss
                 if (!endgame) {
                     this.makeMonster(dungeonName, dex, dey + 1, true)
+
+                    // make exit portal
+                    SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
+                           VALUES ('remote_only', {attrs}, {x}, {y}, {realmId})""").on(
+                        "attrs" -> json.pretty(json.render(
+                            ("behavior" -> "portal") ~
+                            ("target" -> (
+                                ("realm" -> realmName) ~
+                                ("x" -> x) ~
+                                ("y" -> y)
+                            )) ~
+                            ("linked_portal_id" -> portalId) ~
+                            ("change_spawn" -> false)
+                        )),
+                        "x" -> dex,
+                        "y" -> dey,
+                        "realmId" -> dungeonId
+                    ).executeInsert()
                 } else {
                     // make boss at end of dungeon
                     SQL("""INSERT INTO monsters(kind, drops, hearts, max_hearts, damage, x, y, realm_id)
                            VALUES ({kind}, {drops}, {hearts}, {hearts}, {damage}, {x}, {y}, {realmId})""").on(
                         "kind" -> "dragon",
                         "drops" -> "[]",
-                        "x" -> x,
-                        "y" -> y,
+                        "x" -> dex,
+                        "y" -> dey,
                         "hearts" -> 40,
                         "damage" -> 8,
                         "realmId" -> dungeonId
                     ).execute()
                 }
-
-                // make exit portal
-                SQL("""INSERT INTO features(kind, attrs, x, y, realm_id)
-                       VALUES ('remote_only', {attrs}, {x}, {y}, {realmId})""").on(
-                    "attrs" -> json.pretty(json.render(
-                        ("behavior" -> "portal") ~
-                        ("target" -> (
-                            ("realm" -> realmName) ~
-                            ("x" -> x) ~
-                            ("y" -> y)
-                        )) ~
-                        ("linked_portal_id" -> portalId) ~
-                        ("change_spawn" -> false)
-                    )),
-                    "x" -> dex,
-                    "y" -> dey,
-                    "realmId" -> dungeonId
-                ).executeInsert()
 
                 true
             }

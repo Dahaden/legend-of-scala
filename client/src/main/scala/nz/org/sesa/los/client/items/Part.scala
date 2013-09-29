@@ -23,14 +23,14 @@ class Part(val id : Int, val owner : Adventurer, type_ : String) extends Item {
             case "plank" => "It's a wooden plank."
             case "ingot" => "It's an ingot made out of iron."
             case "diamond" => "It's a glistening diamond."
-            case "fire_gem" => "It's a fire gem, one of the parts of an ancient staff."
-            case "earth_gem" => "It's a earth gem, one of the parts of an ancient staff."
-            case "water_gem" => "It's a water gem, one of the parts of an ancient staff."
-            case "air_gem" => "It's a air gem, one of the parts of an ancient staff."
+            case "fire gem" => "It's a fire gem, one of the parts of an ancient staff."
+            case "earth gem" => "It's a earth gem, one of the parts of an ancient staff."
+            case "water gem" => "It's a water gem, one of the parts of an ancient staff."
+            case "air gem" => "It's a air gem, one of the parts of an ancient staff."
         }
     }
 
-    def image = io.Source.fromInputStream(this.getClass.getResourceAsStream(s"/images/${name}.txt")).mkString
+    def image = io.Source.fromInputStream(this.getClass.getResourceAsStream(s"/images/${name.replace(" ", "_")}.txt")).mkString
 
     def action[T : TypeTag](args: Any*) = {
         Display.show("Have you tried .combineing this with something else?")
