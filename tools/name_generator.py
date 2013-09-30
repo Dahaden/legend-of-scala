@@ -54,5 +54,8 @@ TRANSFORMS = [
 TEMPLATES = [
     lambda x: x + str(random.randint(1000, 99999))
 ]
+def makeName():
+    return random.choice(TEMPLATES)(random.choice(TRANSFORMS)(random.choice(PREFIXES) + random.choice(SUFFIXES)))
 
-print random.choice(TEMPLATES)(random.choice(TRANSFORMS)(random.choice(PREFIXES) + random.choice(SUFFIXES)))
+if "__main__" == __name__:
+    print makeName()
