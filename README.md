@@ -13,7 +13,7 @@ Play Framework needs to be installed.
 
 1. Run `play` in the server directory.
 
-2. Open the `console` to run `:load scripts/generate_feature.scala`.
+2. Open the `console` to run `:load scripts/generate_features.scala`.
 
 3. `run`
 

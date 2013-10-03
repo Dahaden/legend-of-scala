@@ -18,7 +18,7 @@ object RealmTileMonster extends Controller {
         case "ogre" => "sword"
         case "kobold" => "mace"
         case "elf" => "spear"
-        case "dragon" => "ancient staff"
+        case "dragon" => "ancient_staff"
     }
 
     private def damageFor(material : String) = material match {

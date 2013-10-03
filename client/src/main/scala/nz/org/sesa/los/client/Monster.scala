@@ -17,7 +17,7 @@ case class Monster(val id : Int, val kind : String, val hearts : Int, val maxHea
         case "ogre" => "sword"
         case "kobold" => "mace"
         case "elf" => "spear"
-        case "dragon" => "ancient_staff"
+        case "dragon" => "ancient staff"
     }
 
     override def toString = s"""
