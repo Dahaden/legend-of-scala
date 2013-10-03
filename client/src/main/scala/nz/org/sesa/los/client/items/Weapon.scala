@@ -28,7 +28,7 @@ class Weapon(val id : Int, val owner : Adventurer, val material : String, val cl
     }
 
     def examine = class_ match {
-        case "ancient staff" => "It's an ancient staff with ancient powers. It kind of looks like a fishing rod."
+        case "ancient_staff" => "It's an ancient staff with ancient powers. It kind of looks like a fishing rod."
         case _ => s"It's a $class_ made of $material."
     }
 
