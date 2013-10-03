@@ -32,7 +32,7 @@ object RealmTileMonster extends Controller {
         case "mace" => "You bludgeon the monster with your mace"
         case "sword" => "You slice the monster with your sword"
         case "spear" => "You stab the monster with your spear"
-        case "ancient staff" => "You cast a spell on the dragon with your staff"
+        case "ancient_staff" => "You cast a spell on the dragon with your staff"
     }
 
     private def getRow(realmName : String, x : Int, y : Int, monsterId : Int) = {

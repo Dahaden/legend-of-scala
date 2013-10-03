@@ -291,7 +291,7 @@ object AdventurerItem extends Controller {
                                     ))).as("application/json")
                                 }
 
-                                case "ancient staff" => {
+                                case "ancient_staff" => {
                                     SQL("""DELETE FROM items
                                            WHERE id = {id}""").on(
                                         "id" -> item[Int]("items.id")
