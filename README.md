@@ -21,9 +21,18 @@ Play Framework needs to be installed.
 
 SBT is bundled with the repo.
 
-1. Set the environment variable `LOS_HOST` to the server's address.
+You must be using OSX or Linux!!
 
-2. Run `./start.sh` in the client directory.
+1. git clone this repo `git clone https://github.com/Dahaden/losclient.git`
+
+2. Set the environment variable `LOS_HOST` to the server's address.
+
+3. Run `./start.sh` in the client directory.
+
+4. Call `var me = login(charName, token)`
+   If you do not have a charName or token, contact dhad933@aucklanduni.ac.nz WITH a charname and token
+
+5. Follow tutorial http://sesa.org.nz/los
 
 ## Tutorial
 
