@@ -30,7 +30,6 @@ You must be using OSX or Linux!!
 3. Run `./start.sh` in the client directory.
 
 4. Call `var me = login(charName, token)`
-   If you do not have a charName or token, contact dhad933@aucklanduni.ac.nz WITH a charname and token
 
 5. Follow tutorial http://sesa.org.nz/los
 
