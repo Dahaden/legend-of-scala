@@ -2,3 +2,4 @@ target/
 *.class
 
 *.db
+.DS_Store
