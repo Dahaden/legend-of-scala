@@ -1,0 +1,33 @@
+body {
+  padding: 20px 170px 170px 170px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  background: #3858c8;
+  font: 12pt/20pt "Aldrich", sans-serif;
+}
+a {
+  color: #00b7ff;
+}
+#main {
+  background: #fff;
+  padding: 20px 40px 40px 40px;
+}
+#logo {
+  display: block;
+  margin: auto;
+  width: 550px;
+  padding-bottom: 10px;
+}
+#warning {
+  display: none;
+  color: #f00;
+}
+#confirm {
+  display: none;
+}
+#name {
+  margin-bottom: 0px;
+}
+#token {
+  margin-bottom: 0px;
+  margin-top: 0px;
+}

@@ -1,4 +1,6 @@
-GET     /                                                   nz.org.sesa.los.server.controllers.Application.index
+GET     /                                                   controllers.Application.index
+GET     /assets/*file                                       controllers.Assets.at(path="/public", file)
+GET     /status                                             nz.org.sesa.los.server.controllers.Application.index
 GET     /realms/:realmName                                  nz.org.sesa.los.server.controllers.Realm.view(realmName: String)
 GET     /realms/:realmName/:x,:y                            nz.org.sesa.los.server.controllers.RealmTile.view(realmName: String, x: Int, y: Int)
 GET     /realms/:realmName/:x,:y/features/:featureId        nz.org.sesa.los.server.controllers.RealmTileFeature.view(realmName: String, x: Int, y: Int, featureId : Int)

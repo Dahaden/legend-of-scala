@@ -1,0 +1,20 @@
+@(message: String)
+@main("Los"){
+<div id="main">
+  <p>To start your adventure, submit a name and receive your token</p>
+  <div id="submit">
+    <p id="warning"></p>
+    <form action="/" name="input" method="POST">
+      <p>Character Name:&nbsp;
+        <input type="text" name="charName" id="input">
+        <input type="submit" id="submitButton">
+      </p>
+    </form>
+  </div>
+  <div id="confirm">
+    <p id="name"> Character Name:</p>
+    <p id="token">Token:</p>
+    <p>Click&nbsp;<a href="https://github.com/Dahaden/lossignup">Here</a>&nbsp;to start your journey!</p>
+  </div>
+</div>
+}
