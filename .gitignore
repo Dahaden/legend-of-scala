@@ -1,5 +1,5 @@
 target/
 *.class
 
-*.db
+server/*.db
 .DS_Store
